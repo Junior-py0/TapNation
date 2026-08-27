@@ -1,11 +1,11 @@
-// ============================================================
+﻿// ============================================================
 // TAPROUTE MVP CONFIG
 // Replace these TWO values after creating your Supabase project.
 // IMPORTANT: Use your public ANON key, NEVER your service_role key.
 // ============================================================
 
-const SUPABASE_URL = "PASTE_YOUR_SUPABASE_PROJECT_URL_HERE";
-const SUPABASE_ANON_KEY = "PASTE_YOUR_SUPABASE_ANON_KEY_HERE";
+const SUPABASE_URL = "https://dqyqkeqdvsidmffaanys.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_iiFisqh9j9h4TJuvtcWEnw_976b5T6U";
 
 const configured =
   !SUPABASE_URL.startsWith("PASTE_") &&
@@ -136,7 +136,7 @@ function wireEvents() {
 
   els.copyNfcBtn.addEventListener("click", async () => {
     const url = els.nfcUrlText.textContent;
-    if (!url || url === "—") return;
+    if (!url || url === "â€”") return;
     await navigator.clipboard.writeText(url);
     showToast("NFC URL copied");
   });
@@ -181,7 +181,7 @@ async function handleAuth(event) {
   const email = els.emailInput.value.trim();
   const password = els.passwordInput.value;
   els.authSubmitBtn.disabled = true;
-  setMessage(els.authMessage, "Working…");
+  setMessage(els.authMessage, "Workingâ€¦");
 
   try {
     let result;
@@ -253,7 +253,7 @@ async function loadCards() {
       <p>${escapeHtml(card.destination_url || "No destination set")}</p>
       <footer>
         <span>${Number(card.tap_count || 0)} taps</span>
-        <span>Edit →</span>
+        <span>Edit â†’</span>
       </footer>
     `;
     tile.addEventListener("click", () => openEditor(card));
@@ -271,7 +271,7 @@ async function claimCard(event) {
   const code = els.claimCodeInput.value.trim().toUpperCase();
   if (!code) return;
 
-  setMessage(els.claimMessage, "Claiming…");
+  setMessage(els.claimMessage, "Claimingâ€¦");
 
   const { data, error } = await sb.rpc("claim_card", {
     p_claim_code: code,
@@ -351,7 +351,7 @@ async function saveCard(event) {
     }
   }
 
-  setMessage(els.saveMessage, "Saving…");
+  setMessage(els.saveMessage, "Savingâ€¦");
 
   const { data, error } = await sb.rpc("update_card", {
     p_card_id: state.currentCard.id,
@@ -411,8 +411,8 @@ async function resolveAndRedirect(slug) {
     }
 
     els.redirectTitle.textContent = result.card_name
-      ? `Opening ${result.card_name}…`
-      : "Opening your link…";
+      ? `Opening ${result.card_name}â€¦`
+      : "Opening your linkâ€¦";
 
     els.manualOpen.href = safeUrl;
     els.manualOpen.classList.remove("hidden");
@@ -506,3 +506,4 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+
