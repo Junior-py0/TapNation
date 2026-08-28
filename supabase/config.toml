@@ -1,0 +1,10 @@
+project_id = "dqyqkeqdvsidmffaanys"
+
+[functions.tapnation-business-checkout]
+verify_jwt = true
+
+[functions.tapnation-business-verify]
+verify_jwt = true
+
+[functions.tapnation-paystack-webhook]
+verify_jwt = false

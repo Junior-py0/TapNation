@@ -3,227 +3,156 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0b0d10" />
-  <meta name="description" content="TapRoute — one NFC card, any destination." />
-  <title>TapRoute</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="theme-color" content="#07120f" />
+  <meta name="description" content="TapNation turns one NFC card into any destination—change it anytime and understand every tap." />
+  <title>TapNation — One tap. Anywhere.</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
   <div id="redirectScreen" class="screen hidden" aria-live="polite">
-    <div class="redirect-card">
-      <div class="tap-mark small">T</div>
-      <div class="spinner"></div>
-      <h1 id="redirectTitle">Opening your link…</h1>
-      <p id="redirectText">TapRoute is resolving this card.</p>
-      <a id="manualOpen" class="btn primary hidden" href="#">Open link</a>
+    <div class="redirect-card panel-shell">
+      <a class="brand-mark large" href="./" aria-label="TapNation home"><span>TN</span></a>
+      <div class="spinner" aria-hidden="true"></div>
+      <p class="kicker">TAP DETECTED</p>
+      <h1 id="redirectTitle">Opening your destination…</h1>
+      <p id="redirectText">TapNation is resolving this card.</p>
+      <a id="manualOpen" class="button primary hidden" href="#">Open destination <span>↗</span></a>
     </div>
   </div>
 
-  <main id="app">
-    <header class="topbar">
-      <a class="brand" href="./" aria-label="TapRoute home">
-        <span class="tap-mark">T</span>
-        <span>TapRoute</span>
-      </a>
-      <button id="logoutBtn" class="btn ghost small-btn hidden">Log out</button>
+  <div id="app">
+    <header class="site-header">
+      <div class="header-inner">
+        <button id="homeBtn" class="brand button-reset" aria-label="TapNation home">
+          <span class="brand-mark"><span>TN</span></span>
+          <span>TapNation</span>
+        </button>
+        <nav id="landingNav" class="landing-nav" aria-label="Main navigation">
+          <a href="#destinations">Destinations</a><a href="#how-it-works">How it works</a><a href="#business">For business</a><a href="#pricing">Pricing</a>
+        </nav>
+        <div id="headerCtas" class="header-actions">
+          <button id="showLoginBtn" class="button text-button">Log in</button>
+          <button id="showSignupBtn" class="button primary compact">Get started <span>↗</span></button>
+        </div>
+        <div id="accountActions" class="header-actions hidden">
+          <span id="planBadge" class="plan-badge">Starter</span><button id="logoutBtn" class="button secondary compact">Log out</button>
+        </div>
+      </div>
     </header>
 
-    <section id="hero" class="hero">
-      <div class="hero-copy">
-        <span class="eyebrow">ONE CARD. ANY LINK.</span>
-        <h1>Tap once.<br><span>Share anything.</span></h1>
-        <p>
-          Connect your TapRoute card to Instagram, TikTok, WhatsApp, your website,
-          or any link. Change it whenever you want — without reprogramming the card.
-        </p>
-
-        <div class="hero-actions">
-          <button id="showSignupBtn" class="btn primary">Create account</button>
-          <button id="showLoginBtn" class="btn secondary">Log in</button>
-        </div>
-
-        <div class="platform-row" aria-label="Supported platforms">
-          <div class="platform-chip">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.52 2 2.05 6.48 2.05 12c0 1.76.46 3.48 1.34 4.99L2 22l5.14-1.35A9.92 9.92 0 0 0 12.04 22H12c5.51 0 10-4.48 10-10S17.55 2 12.04 2Zm5.82 14.3c-.25.7-1.46 1.34-2.03 1.43-.52.08-1.18.12-1.9-.12-.44-.14-1-.32-1.72-.63-3.03-1.31-5.01-4.36-5.16-4.56-.15-.2-1.23-1.64-1.23-3.12 0-1.48.78-2.21 1.05-2.51.27-.3.6-.37.8-.37h.57c.18.01.43-.07.67.51.25.6.85 2.08.93 2.23.07.15.12.32.02.52-.1.2-.15.32-.3.5-.15.17-.32.39-.45.52-.15.15-.3.31-.13.61.17.3.76 1.25 1.63 2.02 1.12 1 2.06 1.31 2.36 1.46.3.15.47.12.65-.08.17-.2.75-.87.95-1.17.2-.3.4-.25.67-.15.27.1 1.73.82 2.03.97.3.15.5.22.57.35.08.12.08.72-.17 1.42Z"/></svg>
-            WhatsApp
-          </div>
-          <div class="platform-chip">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.8 2h8.4A5.8 5.8 0 0 1 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8A5.8 5.8 0 0 1 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2Zm-.2 2A3.6 3.6 0 0 0 4 7.6v8.8A3.6 3.6 0 0 0 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6A3.6 3.6 0 0 0 16.4 4H7.6Zm9.65 1.5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"/></svg>
-            Instagram
-          </div>
-          <div class="platform-chip">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.7 22v-8h2.7l.4-3.1h-3.1v-2c0-.9.25-1.5 1.57-1.5H17V4.63c-.3-.04-1.33-.13-2.53-.13-2.5 0-4.22 1.53-4.22 4.34v2.06H7.4V14h2.85v8h3.45Z"/></svg>
-            Facebook
-          </div>
-          <div class="platform-chip">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.7 5.82a5.38 5.38 0 0 1-3.15-3.05H10.8v12.07a2.57 2.57 0 1 1-1.77-2.44V9.6a5.31 5.31 0 1 0 4.52 5.24V8.72a8.1 8.1 0 0 0 4.74 1.52V7.5a5.43 5.43 0 0 1-1.59-.24v-1.44Z"/></svg>
-            TikTok
-          </div>
-        </div>
-      </div>
-
-      <div class="hero-visual">
-        <div class="phone">
-          <div class="phone-notch"></div>
-          <div class="phone-content">
-            <span class="tiny-label">TAP DETECTED</span>
-            <div class="profile-avatar">KR</div>
-            <h3>KG Ramz</h3>
-            <p>@kgramz</p>
-            <button class="mock-link">Open Instagram ↗</button>
-          </div>
-        </div>
-        <div class="nfc-card">
-          <span class="mini-brand">TapRoute</span>
-          <div class="waves">)))</div>
-          <strong>TAP ME</strong>
-          <small>One tap. Your link.</small>
-        </div>
-      </div>
-    </section>
-
-    <section id="authSection" class="panel auth-panel hidden">
-      <div class="section-heading">
-        <span class="eyebrow">GET STARTED</span>
-        <h2 id="authTitle">Create your account</h2>
-        <p id="authSubtitle">Claim your card and decide where every tap should go.</p>
-      </div>
-
-      <form id="authForm" class="form-grid">
-        <label>
-          Email
-          <input id="emailInput" type="email" autocomplete="email" required placeholder="you@example.com" />
-        </label>
-        <label>
-          Password
-          <input id="passwordInput" type="password" autocomplete="current-password" required minlength="6" placeholder="At least 6 characters" />
-        </label>
-        <button id="authSubmitBtn" class="btn primary full" type="submit">Create account</button>
-      </form>
-      <button id="switchAuthBtn" class="text-btn">Already have an account? Log in</button>
-      <p id="authMessage" class="message"></p>
-    </section>
-
-    <section id="dashboard" class="dashboard hidden">
-      <div class="dash-head">
-        <div>
-          <span class="eyebrow">DASHBOARD</span>
-          <h1>Your TapRoute cards</h1>
-          <p id="userEmail"></p>
-        </div>
-        <button id="openClaimBtn" class="btn primary">+ Claim a card</button>
-      </div>
-
-      <div id="claimBox" class="panel claim-box hidden">
-        <div>
-          <h3>Claim a new card</h3>
-          <p>Enter the activation code supplied with your card.</p>
-        </div>
-        <form id="claimForm" class="inline-form">
-          <input id="claimCodeInput" required maxlength="20" placeholder="e.g. 7K4M9Q" />
-          <button class="btn primary" type="submit">Claim</button>
-        </form>
-        <p id="claimMessage" class="message"></p>
-      </div>
-
-      <div id="emptyCards" class="empty-state hidden">
-        <div class="empty-icon">⌁</div>
-        <h3>No card claimed yet</h3>
-        <p>Use the activation code that came with your NFC card.</p>
-        <button id="emptyClaimBtn" class="btn primary">Claim your first card</button>
-      </div>
-
-      <div id="cardsGrid" class="cards-grid"></div>
-    </section>
-
-    <section id="editorSection" class="panel editor hidden">
-      <button id="backToCardsBtn" class="text-btn back-btn">← Back to cards</button>
-
-      <div class="editor-grid">
-        <div>
-          <span class="eyebrow">CARD SETTINGS</span>
-          <h2 id="editorCardTitle">Edit card</h2>
-          <p class="muted">The NFC link never changes. Only its destination does.</p>
-
-          <form id="cardForm" class="form-grid">
-            <label>
-              Card name
-              <input id="cardNameInput" maxlength="40" placeholder="My main card" />
-            </label>
-
-            <div>
-              <span class="label-title">Destination type</span>
-              <div class="type-grid">
-                <button class="type-btn active" data-type="url" type="button">
-                  <span class="type-icon">↗</span>
-                  Any URL
-                </button>
-                <button class="type-btn" data-type="whatsapp" type="button">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.52 2 2.05 6.48 2.05 12c0 1.76.46 3.48 1.34 4.99L2 22l5.14-1.35A9.92 9.92 0 0 0 12.04 22H12c5.51 0 10-4.48 10-10S17.55 2 12.04 2Zm5.82 14.3c-.25.7-1.46 1.34-2.03 1.43-.52.08-1.18.12-1.9-.12-.44-.14-1-.32-1.72-.63-3.03-1.31-5.01-4.36-5.16-4.56-.15-.2-1.23-1.64-1.23-3.12 0-1.48.78-2.21 1.05-2.51.27-.3.6-.37.8-.37h.57c.18.01.43-.07.67.51.25.6.85 2.08.93 2.23.07.15.12.32.02.52-.1.2-.15.32-.3.5-.15.17-.32.39-.45.52-.15.15-.3.31-.13.61.17.3.76 1.25 1.63 2.02 1.12 1 2.06 1.31 2.36 1.46.3.15.47.12.65-.08.17-.2.75-.87.95-1.17.2-.3.4-.25.67-.15.27.1 1.73.82 2.03.97.3.15.5.22.57.35.08.12.08.72-.17 1.42Z"/></svg>
-                  WhatsApp
-                </button>
-              </div>
+    <main>
+      <div id="landingPage">
+        <section class="hero section-wrap">
+          <div class="hero-copy reveal">
+            <div class="pill"><span class="pulse-dot"></span> The smarter NFC card</div>
+            <h1>One tap.<br /><span class="gradient-text">Every possibility.</span></h1>
+            <p class="hero-lede">Share a profile, a video, your menu, a review page—or tomorrow’s big idea. Your card stays the same. Its destination moves with you.</p>
+            <div class="hero-actions">
+              <button id="heroStartBtn" class="button primary large-button">Activate your card <span>↗</span></button>
+              <a class="button secondary large-button" href="#how-it-works">See how it works <span>↓</span></a>
             </div>
-
-            <label id="urlField">
-              Destination URL
-              <input id="destinationInput" type="url" placeholder="https://instagram.com/yourname" />
-              <span class="field-hint">Paste any full link: Instagram, TikTok, Facebook, LinkedIn, YouTube, website, etc.</span>
-            </label>
-
-            <label id="whatsappField" class="hidden">
-              WhatsApp number
-              <input id="whatsappInput" inputmode="tel" placeholder="072 123 4567" />
-              <span class="field-hint">South African numbers are automatically converted to +27 format.</span>
-            </label>
-
-            <button class="btn primary full" type="submit">Save destination</button>
-            <p id="saveMessage" class="message"></p>
-          </form>
-        </div>
-
-        <aside class="card-preview-wrap">
-          <div class="physical-card-preview">
-            <span class="mini-brand">TapRoute</span>
-            <div class="waves">)))</div>
-            <strong id="previewName">MY TAP CARD</strong>
-            <small>Tap your phone here</small>
+            <div class="trust-row"><span><b>10+</b> destinations</span><span><b>Live</b> link switching</span><span><b>Zero</b> app downloads</span></div>
           </div>
 
-          <div class="link-box">
-            <span>Your permanent NFC URL</span>
-            <code id="nfcUrlText">—</code>
-            <div class="link-actions">
-              <button id="copyNfcBtn" class="btn secondary small-btn" type="button">Copy</button>
-              <a id="testNfcBtn" class="btn secondary small-btn" target="_blank" rel="noopener">Test</a>
+          <div class="hero-stage reveal reveal-delay" aria-label="TapNation product preview">
+            <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+            <div class="tap-phone">
+              <div class="phone-top"><span>9:41</span><i></i><span>● ◒</span></div>
+              <div class="phone-screen"><div class="phone-success"><span>✓</span></div><small>NFC TAG DETECTED</small><h3>Opening<br /><span id="heroDestination">YouTube</span></h3><div class="loading-line"><i></i></div><p>Powered by TapNation</p></div>
             </div>
+            <div class="nfc-product-card">
+              <div class="card-shine"></div><div class="product-card-top"><span class="mini-logo">TN</span><span class="contactless" aria-label="NFC">)))</span></div><div class="product-card-copy"><small>YOUR WORLD, ONE TAP AWAY</small><strong>TAP<br />HERE</strong></div>
+            </div>
+            <div class="floating-chip chip-youtube"><span>▶</span> YouTube</div><div class="floating-chip chip-review"><span>★</span> Reviews</div><div class="floating-chip chip-whatsapp"><span>◉</span> WhatsApp</div>
           </div>
+        </section>
 
-          <div class="stat-box">
-            <span>Total taps</span>
-            <strong id="tapCount">0</strong>
+        <section class="logo-ribbon" aria-label="Popular TapNation destinations">
+          <div class="ribbon-track"><span>INSTAGRAM</span><i></i><span>YOUTUBE</span><i></i><span>WHATSAPP</span><i></i><span>GOOGLE REVIEWS</span><i></i><span>TIKTOK</span><i></i><span>LINKEDIN</span><i></i><span>MAPS</span><i></i><span>ANY WEBSITE</span></div>
+        </section>
+
+        <section id="destinations" class="content-section section-wrap">
+          <div class="section-intro split-intro"><div><p class="kicker">SEND THEM ANYWHERE</p><h2>Your card has<br /><span class="muted-title">no limits.</span></h2></div><p>Choose a destination preset, follow the plain-language prompt, and switch the link in seconds. No NFC rewriting. No technical setup.</p></div>
+          <div class="destination-showcase">
+            <article class="destination-feature color-red"><span class="feature-number">01</span><div class="feature-icon">▶</div><div><h3>Video & content</h3><p>Open a YouTube video, channel, TikTok profile, reel, portfolio or any campaign content.</p></div><span class="arrow">↗</span></article>
+            <article class="destination-feature color-green"><span class="feature-number">02</span><div class="feature-icon">◉</div><div><h3>Contact & connect</h3><p>Start a WhatsApp chat, phone call or email without asking anyone to type your details.</p></div><span class="arrow">↗</span></article>
+            <article class="destination-feature color-blue"><span class="feature-number">03</span><div class="feature-icon">★</div><div><h3>Grow your business</h3><p>Send customers to Google Reviews, a menu, booking form, store, location or lead page.</p></div><span class="arrow">↗</span></article>
           </div>
-        </aside>
+          <div class="destination-chips"><span>Instagram</span><span>TikTok</span><span>YouTube</span><span>WhatsApp</span><span>Google Reviews</span><span>LinkedIn</span><span>Facebook</span><span>Email</span><span>Phone</span><span>Maps</span><span>Any URL</span></div>
+        </section>
+
+        <section id="how-it-works" class="content-section section-wrap">
+          <div class="section-intro centered-intro"><p class="kicker">FROM BOX TO BRILLIANT</p><h2>Live in three taps.</h2><p>Everything has been designed to make the first setup feel obvious.</p></div>
+          <div class="steps-grid">
+            <article class="step-card"><div class="step-visual claim-visual"><span>7K4M9Q</span><button>Claim</button></div><span class="step-count">01</span><h3>Claim your card</h3><p>Create an account and enter the activation code printed in your TapNation pack.</p></article>
+            <article class="step-card featured-step"><div class="step-visual choose-visual"><span class="selected">▶ YouTube</span><span>★ Reviews</span><span>◉ WhatsApp</span></div><span class="step-count">02</span><h3>Pick a destination</h3><p>Choose a preset. We show exactly what to paste and where to find the right link.</p></article>
+            <article class="step-card"><div class="step-visual tap-visual"><div class="mini-card">TN <b>)))</b></div><span>✓ Live</span></div><span class="step-count">03</span><h3>Tap. Share. Repeat.</h3><p>Your permanent card URL stays put while you change the destination whenever you want.</p></article>
+          </div>
+        </section>
+
+        <section id="business" class="business-section section-wrap">
+          <div class="business-copy"><div class="pill dark-pill"><span class="pulse-dot"></span> TapNation Business</div><p class="kicker">TURN TAPS INTO SIGNAL</p><h2>Know what’s<br />working.</h2><p>Move beyond a lifetime counter. See the rhythm of customer interest, compare cards, and make every placement smarter.</p><ul class="check-list"><li><span>✓</span> Daily tap trends</li><li><span>✓</span> Per-card performance</li><li><span>✓</span> 7, 30 and 90-day views</li><li><span>✓</span> One clear business dashboard</li></ul><button id="businessCtaBtn" class="button ink-button large-button">Explore Business <span>↗</span></button></div>
+          <div class="analytics-preview">
+            <div class="analytics-toolbar"><div><span class="mini-logo dark-logo">TN</span><b>Performance</b></div><span class="range-chip">Last 7 days⌄</span></div>
+            <div class="preview-metrics"><div><small>Total taps</small><strong>1,284</strong><em>↗ 18.4%</em></div><div><small>Best card</small><strong>Reception</strong><em>482 taps</em></div></div>
+            <div class="preview-chart" aria-label="Example tap analytics chart"><div class="chart-y"><span>300</span><span>200</span><span>100</span><span>0</span></div><div class="chart-area"><i style="--bar: 38%"></i><i style="--bar: 55%"></i><i style="--bar: 46%"></i><i style="--bar: 72%"></i><i style="--bar: 63%"></i><i style="--bar: 88%"></i><i style="--bar: 76%"></i><div class="chart-labels"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div></div></div>
+            <div class="preview-ranking"><span><i class="rank-dot lime"></i>Reception card</span><b>482</b><span><i class="rank-dot blue"></i>Counter card</span><b>391</b></div>
+          </div>
+        </section>
+
+        <section id="pricing" class="content-section section-wrap pricing-section">
+          <div class="section-intro centered-intro"><p class="kicker">START SIMPLE. GROW SMARTER.</p><h2>A plan for every tap.</h2></div>
+          <div class="pricing-grid">
+            <article class="price-card"><div><span class="price-tag">STARTER</span><h3>Your essential card control.</h3></div><p class="price">Free <small>dashboard access</small></p><ul><li>Unlimited destination changes</li><li>All destination presets</li><li>Lifetime tap count</li><li>Permanent NFC link</li></ul><button class="button secondary full pricingStarterBtn">Activate a card</button></article>
+            <article class="price-card business-price"><div class="recommended">FOR GROWING TEAMS</div><div><span class="price-tag">BUSINESS</span><h3>See the story behind every tap.</h3></div><p class="price"><small>FROM</small> R99 <small>per month · or R999/year</small></p><ul><li>Everything in Starter</li><li>Daily analytics dashboard</li><li>Card performance ranking</li><li>7, 30 and 90-day reporting</li></ul><button class="button primary full businessUpgradeBtn">Unlock Business <span>↗</span></button></article>
+          </div>
+        </section>
+
+        <section class="closing-cta section-wrap"><span class="closing-orbit" aria-hidden="true"></span><p class="kicker">READY WHEN YOU ARE</p><h2>Make your next<br /><span class="gradient-text">introduction count.</span></h2><p>One card. One permanent link. Endless places to go.</p><button id="closingStartBtn" class="button primary large-button">Get started now <span>↗</span></button></section>
+        <footer class="site-footer section-wrap"><div class="brand"><span class="brand-mark"><span>TN</span></span><span>TapNation</span></div><p>Smart NFC cards built for real-world connections.</p><div><a href="#destinations">Destinations</a><a href="#business">Business</a><a href="#pricing">Pricing</a></div><small>© <span id="footerYear"></span> TapNation. One tap, anywhere.</small></footer>
       </div>
 
-      <details class="help-box">
-        <summary>Where do I get my profile link?</summary>
-        <div class="help-grid">
-          <div><strong>Instagram</strong><p>Profile → Share profile → Copy link.</p></div>
-          <div><strong>TikTok</strong><p>Profile → Share → Copy link.</p></div>
-          <div><strong>Facebook</strong><p>Open your profile/page → Share → Copy link.</p></div>
-          <div><strong>LinkedIn</strong><p>Open profile → More/Share profile → Copy link.</p></div>
-          <div><strong>YouTube</strong><p>Open your channel → Share → Copy link.</p></div>
-          <div><strong>Website</strong><p>Copy the full address from your browser.</p></div>
-          <div><strong>WhatsApp</strong><p>Just enter your number above. TapRoute creates the chat link.</p></div>
+      <section id="authSection" class="auth-layout hidden">
+        <div class="auth-story"><button id="backHomeBtn" class="button text-button back-home">← Back home</button><div><p class="kicker">YOUR CARD. YOUR ROUTE.</p><h1>Make every<br />tap <span class="gradient-text">matter.</span></h1><p>Claim your TapNation card, choose where it goes, and change your mind whenever you like.</p></div><div class="auth-card-mini"><span class="mini-logo">TN</span><b>)))</b><small>THE WORLD IS ONE TAP AWAY</small></div></div>
+        <div class="auth-panel panel-shell"><p class="kicker">TAPNATION ACCOUNT</p><h2 id="authTitle">Create your account</h2><p id="authSubtitle" class="subtle">Set up your dashboard in under a minute.</p><form id="authForm" class="form-stack"><label>Email address<input id="emailInput" type="email" autocomplete="email" required placeholder="you@example.com" /></label><label>Password<input id="passwordInput" type="password" autocomplete="current-password" required minlength="6" placeholder="At least 6 characters" /></label><button id="authSubmitBtn" class="button primary full" type="submit">Create account <span>↗</span></button></form><p id="authMessage" class="message" role="status"></p><button id="switchAuthBtn" class="button text-button auth-switch">Already have an account? <b>Log in</b></button></div>
+      </section>
+
+      <section id="dashboard" class="app-shell hidden">
+        <div class="dashboard-heading"><div><p class="kicker">YOUR CONTROL CENTRE</p><h1>Good to see you.</h1><p id="userEmail" class="subtle"></p></div><button id="openClaimBtn" class="button primary">+ Claim a card</button></div>
+        <div class="metric-grid"><article><span class="metric-icon">↗</span><div><small>Total taps</small><strong id="dashboardTapTotal">0</strong></div></article><article><span class="metric-icon blue-icon">●</span><div><small>Active cards</small><strong id="dashboardCardTotal">0</strong></div></article><article><span class="metric-icon amber-icon">◆</span><div><small>Current plan</small><strong id="dashboardPlan">Starter</strong></div></article></div>
+        <div id="claimBox" class="panel-shell action-panel hidden"><div><p class="kicker">ADD TO DASHBOARD</p><h3>Claim a new card</h3><p>Enter the activation code printed in your TapNation pack.</p></div><form id="claimForm" class="claim-form"><input id="claimCodeInput" required maxlength="20" autocomplete="off" placeholder="e.g. 7K4M9Q" /><button class="button primary" type="submit">Claim card</button></form><p id="claimMessage" class="message" role="status"></p></div>
+        <div class="dashboard-section-head"><div><p class="kicker">MY CARDS</p><h2>Routes you control</h2></div><span id="cardCountLabel">0 cards</span></div>
+        <div id="emptyCards" class="empty-state hidden"><div class="empty-card-visual"><span>TN</span><b>+</b></div><h3>Your first route starts here.</h3><p>Claim the activation code that came with your card, then choose where every tap should go.</p><button id="emptyClaimBtn" class="button primary">Claim your first card</button></div><div id="cardsGrid" class="cards-grid"></div>
+        <section id="analyticsSection" class="analytics-section panel-shell"><div class="dashboard-section-head analytics-head"><div><p class="kicker">BUSINESS ANALYTICS</p><h2>Tap performance</h2></div><select id="analyticsRange" aria-label="Analytics date range"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option></select></div><div id="analyticsLocked" class="analytics-locked"><div class="lock-badge">◆</div><h3>See more than a total.</h3><p>Unlock daily trends and compare every card from one clear business dashboard.</p><button class="button primary businessUpgradeBtn">Unlock Business <span>↗</span></button></div><div id="analyticsContent" class="hidden"><div class="analytics-summary"><article><small>Period taps</small><strong id="periodTapTotal">0</strong></article><article><small>Best day</small><strong id="bestTapDay">—</strong></article><article><small>Top card</small><strong id="topTapCard">—</strong></article></div><div id="analyticsChart" class="live-chart" aria-label="Daily taps chart"></div><div id="cardRanking" class="ranking-list"></div></div><p id="analyticsMessage" class="message" role="status"></p></section>
+        <section id="adminInventory" class="admin-section panel-shell hidden"><div class="dashboard-section-head"><div><p class="kicker">OWNER TOOLS</p><h2>Create card inventory</h2><p>Generate secure slugs and separate customer claim codes without touching SQL.</p></div><span class="admin-badge">ADMIN</span></div><form id="inventoryForm" class="inventory-form"><label>Number of cards<input id="inventoryQuantity" type="number" min="1" max="100" value="10" required /></label><label>Name prefix<input id="inventoryPrefix" maxlength="28" value="TapNation Card" placeholder="TapNation Card" /></label><button id="generateCardsBtn" class="button primary" type="submit">Generate cards</button></form><p id="inventoryMessage" class="message" role="status"></p><div id="inventoryResults" class="inventory-results hidden"><div class="inventory-result-head"><strong>New card batch</strong><button id="downloadInventoryBtn" class="button secondary compact" type="button">Download CSV</button></div><div class="table-scroll"><table><thead><tr><th>Card</th><th>Slug</th><th>Claim code</th><th>Permanent NFC URL</th></tr></thead><tbody id="inventoryTableBody"></tbody></table></div></div></section>
+      </section>
+
+      <section id="editorSection" class="editor-shell hidden">
+        <button id="backToCardsBtn" class="button text-button back-to-dashboard">← Back to dashboard</button>
+        <div class="editor-heading"><div><p class="kicker">CARD SETTINGS</p><h1 id="editorCardTitle">Edit card</h1><p class="subtle">The NFC link never changes. Only the destination does.</p></div><span id="saveStatusBadge" class="save-status">All changes saved</span></div>
+        <div class="editor-layout">
+          <div class="editor-main panel-shell"><form id="cardForm" class="form-stack">
+            <label>Card name<input id="cardNameInput" maxlength="40" placeholder="My main card" /></label>
+            <fieldset class="destination-picker"><legend>Where should this card go?</legend><p>Pick a destination and we’ll show you exactly what to enter.</p><div class="type-grid"><button class="type-btn active" data-type="url" type="button"><span>↗</span><b>Any URL</b></button><button class="type-btn" data-type="instagram" type="button"><span>◎</span><b>Instagram</b></button><button class="type-btn" data-type="tiktok" type="button"><span>♪</span><b>TikTok</b></button><button class="type-btn" data-type="youtube" type="button"><span>▶</span><b>YouTube</b></button><button class="type-btn" data-type="whatsapp" type="button"><span>◉</span><b>WhatsApp</b></button><button class="type-btn" data-type="google_review" type="button"><span>★</span><b>Google Review</b></button><button class="type-btn" data-type="linkedin" type="button"><span>in</span><b>LinkedIn</b></button><button class="type-btn" data-type="facebook" type="button"><span>f</span><b>Facebook</b></button><button class="type-btn" data-type="email" type="button"><span>@</span><b>Email</b></button><button class="type-btn" data-type="phone" type="button"><span>☎</span><b>Phone</b></button><button class="type-btn" data-type="maps" type="button"><span>⌖</span><b>Maps</b></button></div></fieldset>
+            <div class="smart-field"><div class="smart-field-head"><label id="destinationLabel" for="destinationInput">Destination URL</label><span id="destinationTag">FULL LINK</span></div><input id="destinationInput" type="text" autocomplete="off" placeholder="https://yourwebsite.com" /><p id="destinationHint" class="field-hint">Paste the complete address from your browser.</p><div class="how-to-box"><span class="how-icon">?</span><div><strong id="howToTitle">How to get the right link</strong><p id="howToSteps">Open the page you want to share, copy the full address from your browser, then paste it above.</p><code id="destinationExample">https://yourwebsite.com</code></div></div></div>
+            <fieldset class="theme-picker"><legend>Card preview style</legend><div class="theme-options"><button type="button" class="theme-btn active" data-theme="midnight"><i class="theme-midnight"></i>Midnight</button><button type="button" class="theme-btn" data-theme="citrus"><i class="theme-citrus"></i>Citrus</button><button type="button" class="theme-btn" data-theme="cobalt"><i class="theme-cobalt"></i>Cobalt</button><button type="button" class="theme-btn" data-theme="pearl"><i class="theme-pearl"></i>Pearl</button></div></fieldset>
+            <button class="button primary full save-button" type="submit">Save destination <span>↗</span></button><p id="saveMessage" class="message" role="status"></p>
+          </form></div>
+          <aside class="editor-side"><div id="physicalCardPreview" class="physical-card-preview theme-midnight-card"><div class="card-shine"></div><div class="product-card-top"><span class="mini-logo">TN</span><span class="contactless">)))</span></div><div class="product-card-copy"><small>ONE TAP. ANYWHERE.</small><strong id="previewName">MY TAP CARD</strong><span id="previewDestination">ANY URL ↗</span></div></div><div class="side-box"><span>Permanent NFC URL</span><code id="nfcUrlText">—</code><div class="side-actions"><button id="copyNfcBtn" class="button secondary compact" type="button">Copy link</button><a id="testNfcBtn" class="button secondary compact" target="_blank" rel="noopener">Test card ↗</a></div></div><div class="side-stat"><div><span>Total taps</span><strong id="tapCount">0</strong></div><div class="stat-spark"><i></i><i></i><i></i><i></i><i></i></div></div><div class="print-tip"><span>✦</span><div><strong>Designing the physical card?</strong><p>Use the production guide included with this project for dimensions, bleed, safe zones and NFC placement.</p></div></div></aside>
         </div>
-      </details>
-    </section>
-  </main>
+      </section>
+    </main>
+  </div>
 
-  <div id="toast" class="toast hidden"></div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js"></script>
+  <div id="upgradeModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="upgradeTitle"><div class="modal panel-shell"><button id="closeUpgradeBtn" class="modal-close button-reset" aria-label="Close">×</button><div class="lock-badge">◆</div><p class="kicker">TAPNATION BUSINESS</p><h2 id="upgradeTitle">Your taps have more to say.</h2><p>Choose a plan and pay securely with Paystack. Access unlocks automatically after the payment is verified.</p><div class="billing-options"><button id="monthlyUpgradeBtn" class="billing-option" type="button"><span><b>Monthly</b><small>Flexible access</small></span><strong>R99<small>/mo</small></strong></button><button id="annualUpgradeBtn" class="billing-option featured-billing" type="button"><span><b>Annual</b><small>Save R189</small></span><strong>R999<small>/yr</small></strong></button></div><ul class="check-list compact-list"><li><span>✓</span> Daily tap trends</li><li><span>✓</span> Per-card ranking</li><li><span>✓</span> 7, 30 and 90-day views</li></ul><p class="secure-checkout-note">Secure recurring billing by Paystack. You can cancel future renewals through TapNation support.</p><p id="upgradeMessage" class="message"></p></div></div>
+  <div id="toast" class="toast hidden" role="status"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js?v=3"></script>
 </body>
 </html>

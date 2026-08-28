@@ -1,226 +1,221 @@
-# TapRoute MVP
+# TapNation
 
-A static HTML/CSS/JavaScript NFC-card dashboard backed by Supabase.
+TapNation is a static NFC-card website and customer dashboard backed by Supabase. A physical card is programmed once with a permanent URL such as:
 
-## How the NFC system works
+```text
+https://tapnation-sa.pages.dev/?c=A1B2C3D4E5
+```
 
-Every physical NFC card is programmed ONCE with a permanent TapRoute URL:
+When tapped, the website resolves the card slug in Supabase, counts the tap, and opens the destination the owner currently selected. The destination can change without rewriting the NFC tag.
 
-    https://YOURNAME.github.io/YOUR-REPO/?c=ABC123XYZ
+## What this version includes
 
-When somebody taps the NFC card:
-
-1. `index.html` loads.
-2. `app.js` reads the `?c=` card slug.
-3. It calls the Supabase `resolve_card()` RPC.
-4. Supabase returns the destination currently assigned to that card.
-5. The browser redirects to Instagram, TikTok, WhatsApp, a website, etc.
-
-The physical NFC card therefore never needs to be reprogrammed when its destination changes.
+- Full responsive marketing-site redesign
+- Email signup/login and secure card claiming
+- Guided presets for any URL, Instagram, TikTok, YouTube, WhatsApp, Google Reviews, LinkedIn, Facebook, email, phone and Google Maps
+- Clear platform-specific instructions and examples
+- Four visual card-preview themes
+- Starter dashboard with lifetime counts
+- Business dashboard with 7, 30 and 90-day trends plus per-card rankings
+- Paystack Business subscriptions at R99/month or R999/year
+- Admin-only batch card generation and CSV export
+- Privacy-light analytics (timestamp + card only; no IP, fingerprint or precise location)
+- Cloudflare Pages-ready static hosting
 
 ## Files
 
-- `index.html` — landing page, login, dashboard and card editor
-- `style.css` — complete responsive styling
-- `app.js` — authentication, claiming, card editing and redirect logic
-- `supabase.sql` — database, Row Level Security and RPC setup
-- `README.md` — this guide
+- `index.html` — landing page, auth, customer dashboard, analytics and admin UI
+- `style.css` — responsive visual system
+- `app.js` — Supabase auth, routing, destination builder, analytics and inventory tools
+- `supabase.sql` — idempotent database install/upgrade
+- `supabase/functions/` — authenticated checkout, direct verification and signed Paystack webhook handling
+- `CARD_DESIGN_GUIDE.md` — production-ready physical card design guidance
+- `_headers` — Cloudflare Pages security headers
 
-## 1. Create Supabase project
+## 1. Upgrade Supabase first
 
-Create a new Supabase project manually.
-
-Open:
-
-    SQL Editor -> New Query
-
-Paste the complete contents of `supabase.sql` and run it.
-
-### Email confirmation
-
-For a very fast in-person MVP, you can temporarily disable email confirmation:
-
-    Authentication -> Providers -> Email
-
-This means a new buyer can create an account and immediately claim the card.
-
-For a larger public launch, turn email confirmation back on.
-
-## 2. Get Supabase public credentials
+The website already contains your public Supabase project URL and publishable key. Do not replace the publishable key with a `service_role` key; the browser bundle is public.
 
 In Supabase:
 
-    Project Settings -> API
+1. Open **SQL Editor → New query**.
+2. Paste all of `supabase.sql`.
+3. Click **Run**.
 
-Copy:
+The script preserves the existing `cards` rows and adds profiles, plans, tap events, expanded destinations, analytics RPCs and the admin card generator.
 
-- Project URL
-- anon/public key
+### Give yourself the admin inventory tool
 
-Open `app.js` and replace:
+After your TapNation account exists, run this once in the SQL Editor with your real login email:
 
-    const SUPABASE_URL = "PASTE_YOUR_SUPABASE_PROJECT_URL_HERE";
-    const SUPABASE_ANON_KEY = "PASTE_YOUR_SUPABASE_ANON_KEY_HERE";
+```sql
+insert into public.app_admins (user_id)
+select id from auth.users where email = 'YOUR_EMAIL_HERE'
+on conflict (user_id) do nothing;
+```
 
-NEVER put the `service_role` key in this project. GitHub Pages is public.
+Log out and back in. The **Owner tools → Create card inventory** panel will appear. It can generate 1–100 cards at a time and download their card name, slug, customer claim code and permanent NFC URL as CSV.
 
-## 3. Preview locally
+The slug is written to the NFC tag. The separate claim code goes into the customer pack. Never print the claim code on the public face of the card or encode it in the NFC tag.
 
-Because the project loads Supabase from a CDN, a local web server is more reliable than double-clicking `index.html`.
+### Enable Business manually for a test/customer account
 
-From the project folder:
+The real checkout uses Paystack. For a free internal test account, an owner can still grant Business manually:
 
-    python -m http.server 5500
+```sql
+update public.profiles
+set plan = 'business', updated_at = now()
+where id = (select id from auth.users where email = 'CUSTOMER_EMAIL_HERE');
+```
 
-Then open:
+The next login unlocks the same daily analytics as a paid account.
 
-    http://localhost:5500
+## 2. Paystack Business billing
 
-If Python is unavailable and you use VS Code, Live Server also works.
+The browser calls `tapnation-business-checkout`; only an authenticated user can start checkout. The secret key stays in Supabase Edge Function secrets. On return, `tapnation-business-verify` verifies the transaction directly with Paystack. The webhook independently validates Paystack's SHA-512 signature, verifies the transaction again, records it idempotently, and only then updates `profiles.plan`.
 
-## 4. Create your test cards
+Required TapNation Edge Function secrets:
 
-The provided SQL automatically creates four unclaimed test cards.
+```text
+PAYSTACK_SECRET_KEY
+PAYSTACK_BUSINESS_MONTHLY_PLAN
+PAYSTACK_BUSINESS_ANNUAL_PLAN
+SITE_URL
+CORS_ORIGINS
+```
 
-After you know your final GitHub Pages URL, run:
+Create two recurring ZAR plans in Paystack:
 
-    select slug, claim_code
-    from public.cards
-    where owner_id is null
-    order by created_at;
+| Plan | Amount | Interval |
+|---|---:|---|
+| TapNation Business Monthly | R99 | Monthly |
+| TapNation Business Annual | R999 | Annually |
 
-For each NFC tag, program this URL:
+This Paystack business already uses the Kompo Nation webhook URL. Do not replace it. The Kompo webhook safely routes references beginning `TN-BUS-` and the two TapNation plan codes to:
 
-    https://YOURNAME.github.io/YOUR-REPO/?c=SLUG
+```text
+https://dqyqkeqdvsidmffaanys.supabase.co/functions/v1/tapnation-paystack-webhook
+```
 
-Example:
+Paystack is currently in Test mode. Switch the TapNation secret and plan codes to their live equivalents only after Paystack approves the business and the complete test checkout succeeds.
 
-    https://kg123.github.io/taproute/?c=8A2B91D4EF
+## 3. Authentication URL and email settings
 
-The `claim_code` is separate. Give that code to the buyer.
+After you know the final Pages address, open **Supabase → Authentication → URL Configuration**:
 
-DO NOT put the claim code into the NFC tag.
+- **Site URL:** `https://YOUR-PROJECT-NAME.pages.dev`
+- **Redirect URLs:** add `https://YOUR-PROJECT-NAME.pages.dev/**`
+- For local testing, also add `http://localhost:5500/**`
 
-## 5. Customer flow
+Keep email confirmation enabled for public launch.
 
-Buyer receives the card.
+### Remove Supabase's two-email-per-hour limit
 
-They visit your normal site:
+Supabase's built-in sender is a trial service capped at two messages per hour. Configure custom SMTP under **Authentication → Email → SMTP Settings**, then raise **Authentication → Rate Limits → Email sent** to a sensible launch value such as 100/hour.
 
-    https://YOURNAME.github.io/YOUR-REPO/
+Brevo is a practical free starting point (300 transactional emails/day):
 
-Then:
+| Supabase field | Brevo value |
+|---|---|
+| Host | `smtp-relay.brevo.com` |
+| Port | `587` |
+| Username | Brevo SMTP login |
+| Password | Brevo SMTP key |
+| Sender email | A sender verified in Brevo |
+| Sender name | `TapNation` |
 
-1. Create account.
-2. Click `Claim a card`.
-3. Enter activation code.
-4. Choose `Any URL` or `WhatsApp`.
-5. Save.
+Do not paste SMTP credentials into this repository or browser JavaScript. Configure CAPTCHA before raising signup limits aggressively.
 
-From that moment, tapping their physical card opens that destination.
+## 4. Preview locally
 
-They can log in later and change the destination without reprogramming the card.
+From this folder:
 
-## 6. WhatsApp
+```powershell
+python -m http.server 5500
+```
 
-The dashboard accepts a South African number such as:
+Open `http://localhost:5500`. Do not test by double-clicking `index.html`; authentication, redirects and clipboard behaviour are more reliable through a local server.
 
-    072 123 4567
+## 5. Get the free `.pages.dev` address
 
-It automatically becomes:
+This repository is already connected to:
 
-    https://wa.me/27721234567
+```text
+https://github.com/Junior-py0/TapNation.git
+```
 
-## 7. Social-profile links
+First commit and push the finished files to `main`. Then:
 
-Instagram:
-    Profile -> Share profile -> Copy link
+1. Sign in to Cloudflare.
+2. Open **Workers & Pages**.
+3. Choose **Create application → Pages → Connect to Git** (the wording may also appear as **Import an existing Git repository**).
+4. Authorize GitHub and select `Junior-py0/TapNation`.
+5. Use these build settings:
 
-TikTok:
-    Profile -> Share -> Copy link
+| Setting | Value |
+|---|---|
+| Project name | `tapnation-sa` (or any available name you want) |
+| Production branch | `main` |
+| Framework preset | None |
+| Build command | `exit 0` (blank also works for a no-build static site) |
+| Build output directory | `/` |
+| Root directory | Leave blank |
 
-Facebook:
-    Profile/Page -> Share -> Copy link
+6. Click **Save and Deploy**.
 
-LinkedIn:
-    Profile -> Share profile / Copy link
+Cloudflare uses the project name for the hostname, so the example above becomes:
 
-YouTube:
-    Channel -> Share -> Copy link
+```text
+https://tapnation-sa.pages.dev
+```
 
-For almost anything else, simply paste the full `https://...` address.
+The exact `tapnation.pages.dev` name is only available if nobody has already claimed that Cloudflare Pages project name. The name does not come from GitHub Pages; GitHub is simply the source repository. Every push to `main` will trigger a new production deployment, and other branches can receive preview deployments.
 
-## 8. GitHub Pages
+After deployment, update the Supabase authentication URLs described above. Test signup, login, claiming and one real `?c=SLUG` redirect on the new domain before encoding physical cards.
 
-Create a completely NEW folder/repository for TapRoute. Do not initialise Git inside another project.
+### Important if tags already contain the old URL
 
-Suggested folder:
+The permanent URL stored on an NFC tag does not change itself. If cards already contain the long GitHub Pages URL, either:
 
-    C:\Users\YOURNAME\Desktop\TapRoute
+- rewrite those NFC tags to the new `https://...pages.dev/?c=SLUG` URL, or
+- keep the old GitHub-hosted redirect working permanently.
 
-Then copy these files into that folder.
+Do not lock tags until the final production URL has been tested on iPhone and Android.
 
-After creating a new EMPTY GitHub repository named `taproute`, commands are:
+## 6. Customer flow
 
-    cd "C:\Users\YOURNAME\Desktop\TapRoute"
-    git init
-    git branch -M main
-    git add .
-    git commit -m "Launch TapRoute MVP"
-    git remote add origin https://github.com/YOUR_GITHUB_USERNAME/taproute.git
-    git push -u origin main
+1. Customer creates an account.
+2. They claim the activation code from their pack.
+3. They open the card and choose a destination preset.
+4. TapNation explains exactly what link, username, email or phone number to enter.
+5. They save. The next tap uses the new destination immediately.
 
-Then in GitHub:
+## 7. Business analytics behaviour
 
-    Repository -> Settings -> Pages
-    Source: Deploy from a branch
-    Branch: main
-    Folder: / (root)
+Each successful route increments `cards.tap_count` and inserts a row in `tap_events`. Business analytics aggregates those events by Johannesburg date and by owned card. Raw events are not exposed to customers.
 
-IMPORTANT:
-If `git remote -v` shows a remote before you add the new one, STOP. You are probably inside an existing Git repository.
+The lifetime count from the previous MVP remains intact, but historical daily events did not exist before this upgrade. Daily charts begin accumulating from the moment the upgraded `resolve_card()` function is installed.
 
-## 9. Program the NFC
+## 8. Pre-launch checklist
 
-Use any trusted NFC-writing app.
+- Run the complete `supabase.sql` upgrade
+- Add your account to `app_admins`
+- Deploy to Cloudflare Pages and configure Supabase auth URLs
+- Configure custom SMTP and test a confirmation email
+- Complete one Paystack test subscription and verify automatic Business unlock
+- Finish Paystack activation before accepting live payments
+- Generate a small test batch and download its CSV
+- Claim one test card as a normal customer
+- Save and test every destination type you plan to advertise
+- Confirm a tap increments the total and Business daily chart
+- Test invalid, unclaimed and inactive card behaviour
+- Test mobile layout on iPhone and Android
+- Program final `.pages.dev/?c=SLUG` links into NFC tags
+- Keep claim codes separate from public card artwork
+- Do not permanently lock tags during early production testing
 
-For each tag:
+## Official Cloudflare references
 
-1. Add a URL/URI record.
-2. Paste its permanent `?c=SLUG` URL.
-3. Write.
-4. Test.
-5. Only then print/laminate the finished card.
-
-Do NOT permanently lock the NFC tag during early testing.
-
-## 10. Before selling
-
-Test all of these:
-
-- New account creation
-- Login
-- Claim code
-- URL destination
-- WhatsApp destination
-- Change destination
-- Tap redirect on Android
-- Tap redirect on iPhone
-- NFC after lamination
-- Invalid/unclaimed card
-- Mobile dashboard
-
-## Important MVP limitation
-
-This version counts every successful NFC resolution as a tap. It does not yet include:
-- advanced analytics
-- custom profile pages
-- multiple buttons per card
-- Google Review mode
-- admin dashboard
-- PayFast checkout
-- card transfer/reassignment
-- lost-card replacement
-- custom domains
-
-Those should come after the basic product proves it can sell.
+- [Cloudflare Pages Git integration](https://developers.cloudflare.com/pages/get-started/git-integration/)
+- [Deploying static HTML to Pages](https://developers.cloudflare.com/pages/framework-guides/deploy-anything/)
+- [Pages build configuration](https://developers.cloudflare.com/pages/configuration/build-configuration/)
