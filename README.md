@@ -113,15 +113,15 @@ Keep email confirmation enabled for public launch.
 
 Supabase's built-in sender is a trial service capped at two messages per hour. Configure custom SMTP under **Authentication → Email → SMTP Settings**, then raise **Authentication → Rate Limits → Email sent** to a sensible launch value such as 100/hour.
 
-Brevo is a practical free starting point (300 transactional emails/day):
+Resend is a practical starting point for transactional email. It provides an SMTP relay and lets you verify a sender domain before production launch:
 
-| Supabase field | Brevo value |
+| Supabase field | Resend value |
 |---|---|
-| Host | `smtp-relay.brevo.com` |
+| Host | `smtp.resend.com` |
 | Port | `587` |
-| Username | Brevo SMTP login |
-| Password | Brevo SMTP key |
-| Sender email | A sender verified in Brevo |
+| Username | `resend` |
+| Password | Resend API key (`re_...`) |
+| Sender email | A sender verified in Resend |
 | Sender name | `TapNation` |
 
 Do not paste SMTP credentials into this repository or browser JavaScript. Configure CAPTCHA before raising signup limits aggressively.
