@@ -1213,10 +1213,6 @@ function drawPdfCardMarks(doc, x, y, side, card, cardWidth, cardHeight) {
     // This overlay makes the NFC placement easy to spot when the back sheet is used as a registration guide.
     drawPdfNfcMarker(doc, x + 14.4, y + 39.8);
   }
-  doc.setFont("courier", "normal");
-  doc.setFontSize(4.2);
-  doc.setTextColor(...ink);
-  doc.text(`CARD ${String(card.batch_position || "").padStart(2, "0")}`, trimX + trimWidth, trimY + trimHeight + 4.2, { align: "right" });
 }
 
 function drawPdfNfcMarker(doc, x, y) {
