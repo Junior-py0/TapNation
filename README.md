@@ -3,7 +3,7 @@
 TapNation is a static NFC-card website and customer dashboard backed by Supabase. A physical card is programmed once with a permanent URL such as:
 
 ```text
-https://tapnation-sa.pages.dev/?c=A1B2C3D4E5
+https://tapnation.pages.dev/?c=A1B2C3D4E5
 ```
 
 When tapped, the website resolves the card slug in Supabase, counts the tap, and opens the destination the owner currently selected. The destination can change without rewriting the NFC tag.
@@ -11,6 +11,9 @@ When tapped, the website resolves the card slug in Supabase, counts the tap, and
 ## What this version includes
 
 - Full responsive marketing-site redesign
+- Storefront for Original, custom-branded and bulk NFC cards
+- Address-based delivery quotes with a Bob Go live-rate path and clearly labelled R99 launch fallback
+- Secure logo intake plus order references and invoice/payment-link follow-up
 - Email signup/login and secure card claiming
 - Guided presets for any URL, Instagram, TikTok, YouTube, WhatsApp, Google Reviews, LinkedIn, Facebook, email, phone and Google Maps
 - Clear platform-specific instructions and examples
@@ -18,7 +21,7 @@ When tapped, the website resolves the card slug in Supabase, counts the tap, and
 - Starter dashboard with lifetime counts
 - Business dashboard with 7, 30 and 90-day trends plus per-card rankings
 - Paystack Business subscriptions at R99/month or R999/year
-- Admin-only batch card generation and CSV export
+- Protected `/admin` control room with inventory totals, linked/activated counts, recent orders, batch card generation and CSV export
 - Privacy-light analytics (timestamp + card only; no IP, fingerprint or precise location)
 - Cloudflare Pages-ready static hosting
 
@@ -28,7 +31,8 @@ When tapped, the website resolves the card slug in Supabase, counts the tap, and
 - `style.css` — responsive visual system
 - `app.js` — Supabase auth, routing, destination builder, analytics and inventory tools
 - `supabase.sql` — idempotent database install/upgrade
-- `supabase/functions/` — authenticated checkout, direct verification and signed Paystack webhook handling
+- `supabase/functions/` — store orders, delivery quotes, authenticated checkout, direct verification and signed Paystack webhook handling
+- `supabase/migrations/` — deployed storefront/order/admin database changes
 - `CARD_DESIGN_GUIDE.md` — production-ready physical card design guidance
 - `_headers` — Cloudflare Pages security headers
 
@@ -54,7 +58,7 @@ select id from auth.users where email = 'YOUR_EMAIL_HERE'
 on conflict (user_id) do nothing;
 ```
 
-Log out and back in. The **Owner tools → Create card inventory** panel will appear. It can generate 1–100 cards at a time and download their card name, slug, customer claim code and permanent NFC URL as CSV.
+Log out and back in, then open `/admin`. The control room can generate 1–100 cards at a time and download their card name, slug, customer access code and permanent NFC URL as CSV.
 
 The slug is written to the NFC tag. The separate claim code goes into the customer pack. Never print the claim code on the public face of the card or encode it in the NFC tag.
 
@@ -99,7 +103,28 @@ https://dqyqkeqdvsidmffaanys.supabase.co/functions/v1/tapnation-paystack-webhook
 
 Paystack is currently in Test mode. Switch the TapNation secret and plan codes to their live equivalents only after Paystack approves the business and the complete test checkout succeeds.
 
-## 3. Authentication URL and email settings
+## 3. Store checkout and Bob Go
+
+`tapnation-store-order` is a public Edge Function with strict server-side pricing and validation. It calculates delivery, saves the order without exposing the orders table, and stores custom logos in a private `order-logos` bucket. Until a live gateway is ready, checkout takes no payment and tells the customer that a secure Yoco payment link or EFT invoice will follow.
+
+The deployed launch fallback is R99 and is explicitly labelled as an estimate. Add these Edge Function secrets to switch the same checkout to live Bob Go rates:
+
+```text
+BOBGO_API_TOKEN
+BOBGO_API_BASE_URL
+BOBGO_COLLECTION_STREET
+BOBGO_COLLECTION_AREA
+BOBGO_COLLECTION_CITY
+BOBGO_COLLECTION_PROVINCE
+BOBGO_COLLECTION_POSTAL
+BOBGO_COLLECTION_PHONE
+BOBGO_COLLECTION_EMAIL
+BOBGO_COLLECTION_NAME
+```
+
+The collection address and contacts must describe the real parcel pickup location. Do not commit them to this repository.
+
+## 4. Authentication URL and email settings
 
 After you know the final Pages address, open **Supabase → Authentication → URL Configuration**:
 
@@ -126,7 +151,7 @@ Resend is a practical starting point for transactional email. It provides an SMT
 
 Do not paste SMTP credentials into this repository or browser JavaScript. Configure CAPTCHA before raising signup limits aggressively.
 
-## 4. Preview locally
+## 5. Preview locally
 
 From this folder:
 
@@ -136,7 +161,7 @@ python -m http.server 5500
 
 Open `http://localhost:5500`. Do not test by double-clicking `index.html`; authentication, redirects and clipboard behaviour are more reliable through a local server.
 
-## 5. Get the free `.pages.dev` address
+## 6. Cloudflare Pages production
 
 This repository is already connected to:
 
@@ -144,7 +169,7 @@ This repository is already connected to:
 https://github.com/Junior-py0/TapNation.git
 ```
 
-First commit and push the finished files to `main`. Then:
+The live project is already connected at `https://tapnation.pages.dev`. Pushing to `main` triggers its production deployment. For a new Cloudflare project:
 
 1. Sign in to Cloudflare.
 2. Open **Workers & Pages**.
@@ -182,7 +207,7 @@ The permanent URL stored on an NFC tag does not change itself. If cards already 
 
 Do not lock tags until the final production URL has been tested on iPhone and Android.
 
-## 6. Customer flow
+## 7. Customer flow
 
 1. Customer creates an account.
 2. They claim the activation code from their pack.
@@ -190,16 +215,19 @@ Do not lock tags until the final production URL has been tested on iPhone and An
 4. TapNation explains exactly what link, username, email or phone number to enter.
 5. They save. The next tap uses the new destination immediately.
 
-## 7. Business analytics behaviour
+## 8. Business analytics behaviour
 
 Each successful route increments `cards.tap_count` and inserts a row in `tap_events`. Business analytics aggregates those events by Johannesburg date and by owned card. Raw events are not exposed to customers.
 
 The lifetime count from the previous MVP remains intact, but historical daily events did not exist before this upgrade. Daily charts begin accumulating from the moment the upgraded `resolve_card()` function is installed.
 
-## 8. Pre-launch checklist
+## 9. Pre-launch checklist
 
 - Run the complete `supabase.sql` upgrade
 - Add your account to `app_admins`
+- Open `/admin` and generate a one-card test CSV
+- Set the real Bob Go collection secrets before advertising live courier pricing
+- Create Yoco payment links or send EFT invoices for launch orders while Paystack remains under review
 - Deploy to Cloudflare Pages and configure Supabase auth URLs
 - Configure custom SMTP and test a confirmation email
 - Complete one Paystack test subscription and verify automatic Business unlock

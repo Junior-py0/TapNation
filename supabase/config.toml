@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.tapnation-paystack-webhook]
 verify_jwt = false
+
+[functions.tapnation-store-order]
+verify_jwt = false

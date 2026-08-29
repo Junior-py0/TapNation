@@ -15,6 +15,12 @@ const sb = configured && window.supabase
 const $ = (id) => document.getElementById(id);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 
+const STORE_PRODUCTS = {
+  original: { name: "TapNation Original", typeLabel: "Original", description: "A ready-to-tap card with your own changeable destination.", minimum: 1 },
+  custom: { name: "Custom Branded", typeLabel: "Custom branded", description: "Your logo, your colours and a design proof before we print.", minimum: 1 },
+  bulk: { name: "Teams & Bulk", typeLabel: "Bulk / team", description: "Volume-priced cards for staff, venues, events and campaigns.", minimum: 10 },
+};
+
 const DESTINATIONS = {
   url: {
     name: "Any URL",
@@ -149,21 +155,27 @@ const state = {
   plan: "starter",
   isAdmin: false,
   inventory: [],
+  adminOverview: null,
+  storeProduct: "original",
+  shippingQuote: null,
+  requestedAdmin: false,
   preview: false,
   paymentReference: "",
 };
 
 const els = {
   app: $("app"), redirectScreen: $("redirectScreen"), redirectTitle: $("redirectTitle"), redirectText: $("redirectText"), manualOpen: $("manualOpen"),
-  landingPage: $("landingPage"), authSection: $("authSection"), dashboard: $("dashboard"), editorSection: $("editorSection"), landingNav: $("landingNav"), headerCtas: $("headerCtas"), accountActions: $("accountActions"),
-  homeBtn: $("homeBtn"), backHomeBtn: $("backHomeBtn"), showSignupBtn: $("showSignupBtn"), showLoginBtn: $("showLoginBtn"), heroStartBtn: $("heroStartBtn"), closingStartBtn: $("closingStartBtn"), businessCtaBtn: $("businessCtaBtn"), logoutBtn: $("logoutBtn"),
+  landingPage: $("landingPage"), authSection: $("authSection"), dashboard: $("dashboard"), editorSection: $("editorSection"), adminPage: $("adminPage"), landingNav: $("landingNav"), headerCtas: $("headerCtas"), accountActions: $("accountActions"),
+  homeBtn: $("homeBtn"), backHomeBtn: $("backHomeBtn"), showSignupBtn: $("showSignupBtn"), showLoginBtn: $("showLoginBtn"), heroStartBtn: $("heroStartBtn"), closingStartBtn: $("closingStartBtn"), businessCtaBtn: $("businessCtaBtn"), logoutBtn: $("logoutBtn"), accountBtn: $("accountBtn"), adminNavBtn: $("adminNavBtn"), footerAccountBtn: $("footerAccountBtn"),
   planBadge: $("planBadge"), footerYear: $("footerYear"), heroDestination: $("heroDestination"),
   authTitle: $("authTitle"), authSubtitle: $("authSubtitle"), authForm: $("authForm"), emailInput: $("emailInput"), passwordInput: $("passwordInput"), authSubmitBtn: $("authSubmitBtn"), switchAuthBtn: $("switchAuthBtn"), authMessage: $("authMessage"),
   userEmail: $("userEmail"), dashboardTapTotal: $("dashboardTapTotal"), dashboardCardTotal: $("dashboardCardTotal"), dashboardPlan: $("dashboardPlan"), openClaimBtn: $("openClaimBtn"), emptyClaimBtn: $("emptyClaimBtn"), claimBox: $("claimBox"), claimForm: $("claimForm"), claimCodeInput: $("claimCodeInput"), claimMessage: $("claimMessage"), emptyCards: $("emptyCards"), cardsGrid: $("cardsGrid"), cardCountLabel: $("cardCountLabel"),
   analyticsRange: $("analyticsRange"), analyticsLocked: $("analyticsLocked"), analyticsContent: $("analyticsContent"), analyticsMessage: $("analyticsMessage"), periodTapTotal: $("periodTapTotal"), bestTapDay: $("bestTapDay"), topTapCard: $("topTapCard"), analyticsChart: $("analyticsChart"), cardRanking: $("cardRanking"),
   adminInventory: $("adminInventory"), inventoryForm: $("inventoryForm"), inventoryQuantity: $("inventoryQuantity"), inventoryPrefix: $("inventoryPrefix"), generateCardsBtn: $("generateCardsBtn"), inventoryMessage: $("inventoryMessage"), inventoryResults: $("inventoryResults"), inventoryTableBody: $("inventoryTableBody"), downloadInventoryBtn: $("downloadInventoryBtn"),
+  adminBackBtn: $("adminBackBtn"), refreshAdminBtn: $("refreshAdminBtn"), adminTotalCards: $("adminTotalCards"), adminLinkedCards: $("adminLinkedCards"), adminActivatedCards: $("adminActivatedCards"), adminUnclaimedCards: $("adminUnclaimedCards"), adminCardsLabel: $("adminCardsLabel"), adminCardsBody: $("adminCardsBody"), adminOrdersLabel: $("adminOrdersLabel"), adminOrdersBody: $("adminOrdersBody"), adminMessage: $("adminMessage"),
   backToCardsBtn: $("backToCardsBtn"), cardForm: $("cardForm"), cardNameInput: $("cardNameInput"), destinationInput: $("destinationInput"), destinationLabel: $("destinationLabel"), destinationTag: $("destinationTag"), destinationHint: $("destinationHint"), howToTitle: $("howToTitle"), howToSteps: $("howToSteps"), destinationExample: $("destinationExample"), saveMessage: $("saveMessage"), saveStatusBadge: $("saveStatusBadge"), editorCardTitle: $("editorCardTitle"), physicalCardPreview: $("physicalCardPreview"), previewName: $("previewName"), previewDestination: $("previewDestination"), nfcUrlText: $("nfcUrlText"), copyNfcBtn: $("copyNfcBtn"), testNfcBtn: $("testNfcBtn"), tapCount: $("tapCount"),
   upgradeModal: $("upgradeModal"), closeUpgradeBtn: $("closeUpgradeBtn"), monthlyUpgradeBtn: $("monthlyUpgradeBtn"), annualUpgradeBtn: $("annualUpgradeBtn"), upgradeMessage: $("upgradeMessage"), toast: $("toast"),
+  storeModal: $("storeModal"), closeStoreBtn: $("closeStoreBtn"), storeFormView: $("storeFormView"), storeSuccess: $("storeSuccess"), storeDoneBtn: $("storeDoneBtn"), storeOrderForm: $("storeOrderForm"), storeProductName: $("storeProductName"), storeProductText: $("storeProductText"), storeTypeLabel: $("storeTypeLabel"), storeQuantity: $("storeQuantity"), logoField: $("logoField"), storeLogo: $("storeLogo"), storeMerchandiseTotal: $("storeMerchandiseTotal"), storeDeliveryTotal: $("storeDeliveryTotal"), storeGrandTotal: $("storeGrandTotal"), quoteDeliveryBtn: $("quoteDeliveryBtn"), shippingResult: $("shippingResult"), placeOrderBtn: $("placeOrderBtn"), storeMessage: $("storeMessage"), storeOrderReference: $("storeOrderReference"),
 };
 
 document.addEventListener("DOMContentLoaded", boot);
@@ -172,6 +184,7 @@ async function boot() {
   wireEvents();
   els.footerYear.textContent = new Date().getFullYear();
   cycleHeroDestination();
+  state.requestedAdmin = /^\/admin\/?$/i.test(window.location.pathname);
 
   const pageParams = new URLSearchParams(window.location.search);
   const cardSlug = pageParams.get("c");
@@ -184,8 +197,16 @@ async function boot() {
   }
 
   const previewMode = pageParams.get("preview");
+  if (["localhost", "127.0.0.1"].includes(window.location.hostname) && previewMode === "store") {
+    showLanding();
+    return;
+  }
   if (["localhost", "127.0.0.1"].includes(window.location.hostname) && previewMode === "dashboard") {
     showPreviewDashboard();
+    return;
+  }
+  if (["localhost", "127.0.0.1"].includes(window.location.hostname) && previewMode === "admin") {
+    showPreviewAdmin();
     return;
   }
 
@@ -198,9 +219,11 @@ async function boot() {
   const { data, error } = await sb.auth.getSession();
   if (error) showToast(friendlyError(error));
   if (data?.session?.user) {
-    await showDashboard(data.session.user);
+    await showDashboard(data.session.user, false);
+    if (state.requestedAdmin) await showAdminPage(false);
     if (state.paymentReference) await verifyBusinessReturn();
   }
+  else if (state.requestedAdmin) openAuth("login");
   else showLanding();
 
   sb.auth.onAuthStateChange((event, session) => {
@@ -215,8 +238,13 @@ async function boot() {
 function wireEvents() {
   [els.showSignupBtn, els.heroStartBtn, els.closingStartBtn, ...$$(".pricingStarterBtn")].forEach((button) => button?.addEventListener("click", () => openAuth("signup")));
   els.showLoginBtn.addEventListener("click", () => openAuth("login"));
-  els.homeBtn.addEventListener("click", () => state.user ? showDashboard(state.user) : showLanding());
-  els.backHomeBtn.addEventListener("click", showLanding);
+  els.homeBtn.addEventListener("click", () => state.user ? showDashboard(state.user) : showLanding(true));
+  els.backHomeBtn.addEventListener("click", () => showLanding(true));
+  els.accountBtn.addEventListener("click", () => state.user && showDashboard(state.user));
+  els.footerAccountBtn.addEventListener("click", () => state.user ? showDashboard(state.user) : openAuth("login"));
+  els.adminNavBtn.addEventListener("click", () => showAdminPage());
+  els.adminBackBtn.addEventListener("click", () => state.user && showDashboard(state.user));
+  els.refreshAdminBtn.addEventListener("click", loadAdminOverview);
   els.switchAuthBtn.addEventListener("click", () => openAuth(state.authMode === "signup" ? "login" : "signup"));
   els.authForm.addEventListener("submit", handleAuth);
   els.logoutBtn.addEventListener("click", logout);
@@ -246,11 +274,20 @@ function wireEvents() {
   els.upgradeModal.addEventListener("click", (event) => { if (event.target === els.upgradeModal) closeUpgradeModal(); });
   els.monthlyUpgradeBtn.addEventListener("click", () => startBusinessCheckout("monthly"));
   els.annualUpgradeBtn.addEventListener("click", () => startBusinessCheckout("annual"));
-  document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeUpgradeModal(); });
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape") { closeUpgradeModal(); closeStore(); } });
+  $$(".shopBuyBtn").forEach((button) => button.addEventListener("click", () => openStore(button.dataset.product)));
+  els.closeStoreBtn.addEventListener("click", closeStore);
+  els.storeDoneBtn.addEventListener("click", closeStore);
+  els.storeModal.addEventListener("click", (event) => { if (event.target === els.storeModal) closeStore(); });
+  els.storeQuantity.addEventListener("input", invalidateShippingQuote);
+  els.storeOrderForm.addEventListener("input", (event) => { if (event.target.name && event.target.name !== "notes") invalidateShippingQuote(); });
+  els.quoteDeliveryBtn.addEventListener("click", quoteStoreDelivery);
+  els.storeOrderForm.addEventListener("submit", submitStoreOrder);
+  window.addEventListener("popstate", handleRouteChange);
 }
 
 function showSection(section) {
-  [els.landingPage, els.authSection, els.dashboard, els.editorSection].forEach((item) => item.classList.add("hidden"));
+  [els.landingPage, els.authSection, els.dashboard, els.editorSection, els.adminPage].forEach((item) => item.classList.add("hidden"));
   section.classList.remove("hidden");
   window.scrollTo({ top: 0, behavior: "instant" });
 }
@@ -259,11 +296,13 @@ function updateHeader(authenticated) {
   els.landingNav.classList.toggle("hidden", authenticated);
   els.headerCtas.classList.toggle("hidden", authenticated);
   els.accountActions.classList.toggle("hidden", !authenticated);
+  els.adminNavBtn.classList.toggle("hidden", !authenticated || !state.isAdmin);
 }
 
-function showLanding() {
+function showLanding(updatePath = false) {
   showSection(els.landingPage);
   updateHeader(Boolean(state.user));
+  if (updatePath) setAppPath("/");
 }
 
 function openAuth(mode) {
@@ -296,7 +335,8 @@ async function handleAuth(event) {
     if (state.authMode === "signup" && !result.data.session) {
       setMessage(els.authMessage, "Account created. Confirm the email we sent you, then log in.", "success");
     } else if (result.data.user) {
-      await showDashboard(result.data.user);
+      await showDashboard(result.data.user, !state.requestedAdmin);
+      if (state.requestedAdmin) await showAdminPage(false);
       if (state.paymentReference) await verifyBusinessReturn();
     }
   } catch (error) {
@@ -314,10 +354,11 @@ async function logout() {
   state.plan = "starter";
   state.isAdmin = false;
   state.preview = false;
-  showLanding();
+  state.requestedAdmin = false;
+  showLanding(true);
 }
 
-async function showDashboard(user) {
+async function showDashboard(user, updatePath = true) {
   if (state.preview) {
     showPreviewDashboard();
     return;
@@ -330,6 +371,10 @@ async function showDashboard(user) {
   setMessage(els.claimMessage, "");
   await Promise.all([loadAccess(user), loadCards()]);
   if (state.plan === "business") await loadAnalytics();
+  if (updatePath) {
+    state.requestedAdmin = false;
+    setAppPath("/");
+  }
 }
 
 function showPreviewDashboard() {
@@ -361,6 +406,26 @@ function showPreviewDashboard() {
   renderAnalytics({ period_taps: daily.reduce((sum, day) => sum + day.taps, 0), daily, cards: [{ card_name: "Reception reviews", taps: 482 }, { card_name: "YouTube launch", taps: 391 }, { card_name: "Main networking card", taps: 274 }] });
 }
 
+function showPreviewAdmin() {
+  state.preview = true;
+  state.user = { id: "local-preview", email: "owner@tapnation.co.za" };
+  state.isAdmin = true;
+  state.adminOverview = {
+    totals: { total_cards: 64, linked_cards: 31, activated_cards: 38, unclaimed_cards: 26, open_orders: 4 },
+    cards: [
+      { slug: "TN84A3PX10", card_name: "Launch Batch 01", owner_id: "preview-owner", destination_type: "whatsapp", destination_url: "https://wa.me/27721234567", tap_count: 84, created_at: new Date().toISOString() },
+      { slug: "TN84A3PX11", card_name: "Launch Batch 02", owner_id: null, destination_type: "url", destination_url: null, tap_count: 0, created_at: new Date().toISOString() },
+    ],
+    orders: [
+      { public_reference: "TN-20260829-A1B2C3", customer_name: "Naledi Mokoena", customer_email: "naledi@example.com", customer_phone: "072 555 0101", product_type: "custom", quantity: 2, total_cents: 99700, payment_status: "pending", fulfilment_status: "new", created_at: new Date().toISOString() },
+    ],
+  };
+  showSection(els.adminPage);
+  updateHeader(true);
+  renderAdminOverview();
+  setMessage(els.adminMessage, "Preview data only.");
+}
+
 async function loadAccess(user) {
   state.plan = "starter";
   state.isAdmin = false;
@@ -376,6 +441,7 @@ async function loadAccess(user) {
   els.analyticsContent.classList.toggle("hidden", state.plan !== "business");
   els.analyticsRange.classList.toggle("hidden", state.plan !== "business");
   els.adminInventory.classList.toggle("hidden", !state.isAdmin);
+  els.adminNavBtn.classList.toggle("hidden", !state.isAdmin);
 }
 
 async function loadCards() {
@@ -668,6 +734,7 @@ async function generateInventory(event) {
   els.inventoryTableBody.innerHTML = state.inventory.map((card, index) => `<tr><td>${escapeHtml(card.card_name || `${prefix} ${index + 1}`)}</td><td><code>${escapeHtml(card.slug)}</code></td><td><code>${escapeHtml(card.claim_code)}</code></td><td><code>${escapeHtml(card.nfc_url)}</code></td></tr>`).join("");
   els.inventoryResults.classList.remove("hidden");
   setMessage(els.inventoryMessage, `${state.inventory.length} cards created. Download the CSV before making another batch.`, "success");
+  await loadAdminOverview();
 }
 
 function downloadInventoryCsv() {
@@ -680,6 +747,233 @@ function downloadInventoryCsv() {
   link.download = `tapnation-card-batch-${new Date().toISOString().slice(0, 10)}.csv`;
   link.click();
   URL.revokeObjectURL(link.href);
+}
+
+async function showAdminPage(updatePath = true) {
+  if (!state.user) {
+    state.requestedAdmin = true;
+    openAuth("login");
+    return;
+  }
+  if (!state.isAdmin) {
+    state.requestedAdmin = false;
+    await showDashboard(state.user);
+    showToast("This page is restricted to TapNation administrators.");
+    return;
+  }
+  state.requestedAdmin = true;
+  showSection(els.adminPage);
+  updateHeader(true);
+  if (updatePath) setAppPath("/admin");
+  await loadAdminOverview();
+}
+
+async function loadAdminOverview() {
+  if (!state.user || !state.isAdmin || !sb) return;
+  els.refreshAdminBtn.disabled = true;
+  setMessage(els.adminMessage, "Refreshing operations data…");
+  const { data, error } = await sb.rpc("admin_dashboard_overview");
+  els.refreshAdminBtn.disabled = false;
+  if (error) {
+    setMessage(els.adminMessage, migrationAwareError(error), "error");
+    return;
+  }
+  state.adminOverview = data || {};
+  renderAdminOverview();
+  setMessage(els.adminMessage, `Updated ${new Intl.DateTimeFormat("en-ZA", { hour: "2-digit", minute: "2-digit" }).format(new Date())}.`, "success");
+}
+
+function renderAdminOverview() {
+  const overview = state.adminOverview || {};
+  const totals = overview.totals || {};
+  const cards = Array.isArray(overview.cards) ? overview.cards : [];
+  const orders = Array.isArray(overview.orders) ? overview.orders : [];
+  els.adminTotalCards.textContent = formatNumber(totals.total_cards);
+  els.adminLinkedCards.textContent = formatNumber(totals.linked_cards);
+  els.adminActivatedCards.textContent = formatNumber(totals.activated_cards);
+  els.adminUnclaimedCards.textContent = formatNumber(totals.unclaimed_cards);
+  els.adminCardsLabel.textContent = `${formatNumber(totals.total_cards)} total`;
+  els.adminOrdersLabel.textContent = `${formatNumber(totals.open_orders)} open`;
+  els.adminCardsBody.innerHTML = cards.length ? cards.map((card) => {
+    const linked = Boolean(card.destination_url);
+    const activated = Boolean(card.owner_id);
+    return `<tr><td>${escapeHtml(card.card_name || "TapNation Card")}</td><td><code>${escapeHtml(card.slug)}</code></td><td><span class="admin-status ${linked ? "good" : "waiting"}">${linked ? escapeHtml(titleCase(card.destination_type || "Link")) : "No link"}</span></td><td><span class="admin-status ${activated ? "good" : "waiting"}">${activated ? "Claimed" : "Ready"}</span></td><td>${formatNumber(card.tap_count)}</td></tr>`;
+  }).join("") : `<tr><td colspan="5">No cards have been created yet.</td></tr>`;
+  els.adminOrdersBody.innerHTML = orders.length ? orders.map((order) => {
+    const quantity = Number(order.quantity || 0);
+    const email = escapeHtml(order.customer_email || "");
+    const phone = escapeHtml(order.customer_phone || "");
+    const status = order.payment_status === "paid" ? "good" : "waiting";
+    return `<tr><td><code>${escapeHtml(order.public_reference)}</code><br><small>${escapeHtml(formatDateTime(order.created_at))}</small></td><td><b>${escapeHtml(order.customer_name)}</b><br><a href="mailto:${email}">${email}</a> · ${phone}</td><td>${quantity} × ${escapeHtml(productName(order.product_type))}</td><td>${formatMoney(order.total_cents)}</td><td><span class="admin-status ${status}">${escapeHtml(titleCase(order.payment_status || "pending"))}</span><br><small>${escapeHtml(titleCase(order.fulfilment_status || "new"))}</small></td></tr>`;
+  }).join("") : `<tr><td colspan="5">No store orders yet.</td></tr>`;
+}
+
+function openStore(productType) {
+  const product = STORE_PRODUCTS[productType] || STORE_PRODUCTS.original;
+  state.storeProduct = STORE_PRODUCTS[productType] ? productType : "original";
+  state.shippingQuote = null;
+  els.storeOrderForm.reset();
+  els.storeQuantity.min = String(product.minimum);
+  els.storeQuantity.value = String(product.minimum);
+  els.storeProductName.textContent = product.name;
+  els.storeProductText.textContent = product.description;
+  els.storeTypeLabel.value = product.typeLabel;
+  els.logoField.classList.toggle("hidden", state.storeProduct === "original");
+  els.storeLogo.required = state.storeProduct === "custom";
+  if (state.user?.email) els.storeOrderForm.elements.email.value = state.user.email;
+  els.storeFormView.classList.remove("hidden");
+  els.storeSuccess.classList.add("hidden");
+  els.shippingResult.classList.add("hidden");
+  els.placeOrderBtn.disabled = true;
+  setMessage(els.storeMessage, "");
+  updateStoreTotals();
+  els.storeModal.classList.remove("hidden");
+  document.body.classList.add("modal-open");
+  setTimeout(() => els.storeQuantity.focus(), 30);
+}
+
+function closeStore() {
+  els.storeModal.classList.add("hidden");
+  document.body.classList.remove("modal-open");
+}
+
+function invalidateShippingQuote() {
+  state.shippingQuote = null;
+  els.shippingResult.classList.add("hidden");
+  els.placeOrderBtn.disabled = true;
+  els.storeDeliveryTotal.textContent = "Calculate quote";
+  updateStoreTotals();
+}
+
+function storeUnitPrice(productType, quantity) {
+  if (productType === "custom") return 44900;
+  if (productType === "bulk") {
+    if (quantity >= 50) return 19900;
+    if (quantity >= 25) return 22900;
+    return 24900;
+  }
+  return 29900;
+}
+
+function updateStoreTotals() {
+  const product = STORE_PRODUCTS[state.storeProduct] || STORE_PRODUCTS.original;
+  const quantity = Math.min(100, Math.max(product.minimum, Number(els.storeQuantity.value || product.minimum)));
+  const merchandise = storeUnitPrice(state.storeProduct, quantity) * quantity;
+  const delivery = Number(state.shippingQuote?.amountCents || 0);
+  els.storeMerchandiseTotal.textContent = formatMoney(merchandise);
+  els.storeDeliveryTotal.textContent = state.shippingQuote ? formatMoney(delivery) : "Calculate quote";
+  els.storeGrandTotal.textContent = formatMoney(merchandise + delivery);
+}
+
+function storePayload(action) {
+  const fields = els.storeOrderForm.elements;
+  const product = STORE_PRODUCTS[state.storeProduct] || STORE_PRODUCTS.original;
+  const quantity = Math.min(100, Math.max(product.minimum, Number(fields.quantity.value || product.minimum)));
+  return {
+    action,
+    productType: state.storeProduct,
+    quantity,
+    customer: {
+      fullName: fields.fullName.value.trim(),
+      email: fields.email.value.trim(),
+      phone: fields.phone.value.trim(),
+      company: fields.company.value.trim(),
+    },
+    address: {
+      streetAddress: fields.streetAddress.value.trim(),
+      localArea: fields.localArea.value.trim(),
+      city: fields.city.value.trim(),
+      province: fields.province.value,
+      postalCode: fields.postalCode.value.trim(),
+      country: "ZA",
+    },
+    notes: fields.notes.value.trim(),
+  };
+}
+
+async function quoteStoreDelivery() {
+  if (!els.storeOrderForm.reportValidity()) return;
+  const product = STORE_PRODUCTS[state.storeProduct];
+  if (Number(els.storeQuantity.value) < product.minimum) {
+    setMessage(els.storeMessage, `The minimum for ${product.name} is ${product.minimum} cards.`, "error");
+    return;
+  }
+  els.quoteDeliveryBtn.disabled = true;
+  els.placeOrderBtn.disabled = true;
+  setMessage(els.storeMessage, "Checking courier delivery to your address…");
+  try {
+    const { data, error } = await sb.functions.invoke("tapnation-store-order", { body: storePayload("quote") });
+    if (error) throw error;
+    if (!data?.quote?.amountCents) throw new Error("No delivery service is available for this address yet.");
+    state.shippingQuote = data.quote;
+    const liveLabel = data.quote.live ? "Live courier quote" : "Launch delivery estimate";
+    els.shippingResult.innerHTML = `<span><b>${escapeHtml(data.quote.courierName || "Nationwide courier")}</b><small>${escapeHtml(data.quote.serviceName || liveLabel)} · ${escapeHtml(liveLabel)}</small></span><strong>${formatMoney(data.quote.amountCents)}</strong>`;
+    els.shippingResult.classList.remove("hidden");
+    els.placeOrderBtn.disabled = false;
+    setMessage(els.storeMessage, data.quote.live ? "Delivery confirmed. You can place the order." : "Delivery is estimated at launch and will be confirmed before payment.", "success");
+    updateStoreTotals();
+  } catch (error) {
+    setMessage(els.storeMessage, friendlyError(await unwrapFunctionError(error)), "error");
+  } finally {
+    els.quoteDeliveryBtn.disabled = false;
+  }
+}
+
+async function submitStoreOrder(event) {
+  event.preventDefault();
+  if (!state.shippingQuote || !els.storeOrderForm.reportValidity()) return;
+  const logo = els.storeLogo.files?.[0] || null;
+  if (state.storeProduct === "custom" && !logo) {
+    setMessage(els.storeMessage, "Upload the business logo for a custom branded card.", "error");
+    return;
+  }
+  if (logo && logo.size > 3 * 1024 * 1024) {
+    setMessage(els.storeMessage, "The logo file must be 3 MB or smaller.", "error");
+    return;
+  }
+  els.placeOrderBtn.disabled = true;
+  els.quoteDeliveryBtn.disabled = true;
+  setMessage(els.storeMessage, "Securing your order…");
+  try {
+    const payload = storePayload("order");
+    payload.quote = state.shippingQuote;
+    if (logo) payload.logo = await filePayload(logo);
+    const { data, error } = await sb.functions.invoke("tapnation-store-order", { body: payload });
+    if (error) throw error;
+    if (!data?.reference) throw new Error("The order was not created. Please try again.");
+    els.storeOrderReference.textContent = data.reference;
+    els.storeFormView.classList.add("hidden");
+    els.storeSuccess.classList.remove("hidden");
+    if (state.isAdmin) loadAdminOverview();
+  } catch (error) {
+    setMessage(els.storeMessage, friendlyError(await unwrapFunctionError(error)), "error");
+    els.placeOrderBtn.disabled = false;
+  } finally {
+    els.quoteDeliveryBtn.disabled = false;
+  }
+}
+
+async function filePayload(file) {
+  const dataUrl = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("The logo file could not be read."));
+    reader.readAsDataURL(file);
+  });
+  return { name: file.name, type: file.type, dataUrl };
+}
+
+function handleRouteChange() {
+  const adminRoute = /^\/admin\/?$/i.test(window.location.pathname);
+  state.requestedAdmin = adminRoute;
+  if (adminRoute) showAdminPage(false);
+  else if (state.user) showDashboard(state.user, false);
+  else showLanding();
+}
+
+function setAppPath(path, replace = false) {
+  if (window.location.pathname === path) return;
+  window.history[replace ? "replaceState" : "pushState"]({}, "", path);
 }
 
 function openUpgradeModal() {
@@ -812,11 +1106,7 @@ function makePhoneUrl(raw) {
 }
 
 function getBaseUrl() {
-  const url = new URL(window.location.href);
-  url.search = "";
-  url.hash = "";
-  url.pathname = url.pathname.replace(/index\.html$/i, "");
-  return url.toString().replace(/\/$/, "");
+  return window.location.origin;
 }
 
 function buildCardUrl(slug) {
@@ -879,8 +1169,11 @@ async function unwrapFunctionError(error) {
 }
 
 function formatNumber(value) { return new Intl.NumberFormat("en-ZA").format(Number(value || 0)); }
+function formatMoney(value) { return new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR", maximumFractionDigits: 0 }).format(Number(value || 0) / 100); }
 function titleCase(value) { return String(value || "").replace(/(^|_)([a-z])/g, (_, space, letter) => `${space ? " " : ""}${letter.toUpperCase()}`); }
+function productName(value) { return STORE_PRODUCTS[value]?.name || titleCase(value || "Card"); }
 function formatDate(value) { return new Intl.DateTimeFormat("en-ZA", { day: "numeric", month: "short" }).format(new Date(`${value}T00:00:00`)); }
+function formatDateTime(value) { return new Intl.DateTimeFormat("en-ZA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value)); }
 function shortDate(value) { return new Intl.DateTimeFormat("en-ZA", { day: "numeric", month: "short" }).format(new Date(`${value}T00:00:00`)); }
 function csvCell(value) { return `"${String(value ?? "").replaceAll('"', '""')}"`; }
 function escapeHtml(value) {
