@@ -22,6 +22,8 @@ When tapped, the website resolves the card slug in Supabase, counts the tap, and
 - Business dashboard with 7, 30 and 90-day trends plus per-card rankings
 - Paystack Business subscriptions at R99/month or R999/year
 - Protected `/admin` control room with inventory totals, linked/activated counts, recent orders, batch card generation and CSV export
+- One-click Shop navigation from the signed-in account dashboard
+- Print-ready PNG and SVG QR generation from the same permanent URL used by each NFC tag
 - Privacy-light analytics (timestamp + card only; no IP, fingerprint or precise location)
 - Cloudflare Pages-ready static hosting
 
@@ -34,6 +36,8 @@ When tapped, the website resolves the card slug in Supabase, counts the tap, and
 - `supabase/functions/` — store orders, delivery quotes, authenticated checkout, direct verification and signed Paystack webhook handling
 - `supabase/migrations/` — deployed storefront/order/admin database changes
 - `CARD_DESIGN_GUIDE.md` — production-ready physical card design guidance
+- `generate_qr_codes.py` — generates matching print/test QR artwork from a slug, URL or admin CSV
+- `requirements-qr.txt` — the small Python QR dependency
 - `_headers` — Cloudflare Pages security headers
 
 ## 1. Upgrade Supabase first
@@ -161,6 +165,28 @@ python -m http.server 5500
 
 Open `http://localhost:5500`. Do not test by double-clicking `index.html`; authentication, redirects and clipboard behaviour are more reliable through a local server.
 
+### Generate the matching QR fallback
+
+Install the QR dependency once:
+
+```powershell
+python -m pip install -r requirements-qr.txt
+```
+
+Generate one QR from a card slug:
+
+```powershell
+python generate_qr_codes.py --slug A1B2C3D4E5 --name "Reception Card"
+```
+
+Or generate a complete batch from the CSV downloaded in `/admin`:
+
+```powershell
+python generate_qr_codes.py --csv .\tapnation-card-batch-2026-08-29.csv
+```
+
+The `qr_codes` folder receives a high-resolution PNG, a print-friendly SVG and `qr_manifest.csv`. The encoded address is the permanent `https://tapnation.pages.dev/?c=SLUG` card link—not the current destination—so NFC taps and QR scans use the same Supabase redirect and tap counter.
+
 ## 6. Cloudflare Pages production
 
 This repository is already connected to:
@@ -226,6 +252,7 @@ The lifetime count from the previous MVP remains intact, but historical daily ev
 - Run the complete `supabase.sql` upgrade
 - Add your account to `app_admins`
 - Open `/admin` and generate a one-card test CSV
+- Generate its QR artwork and confirm the QR opens the same destination as the NFC URL
 - Set the real Bob Go collection secrets before advertising live courier pricing
 - Create Yoco payment links or send EFT invoices for launch orders while Paystack remains under review
 - Deploy to Cloudflare Pages and configure Supabase auth URLs

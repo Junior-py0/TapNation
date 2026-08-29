@@ -93,6 +93,15 @@ This creates an obvious Business-tier product without changing the TapNation lay
 
 Generate each QR from that card’s permanent NFC URL, not its current destination. That preserves the ability to reroute later. Use high error correction, a clear quiet zone, and test the final printed size. Around 18–22 mm square is a practical starting point, but always test the printer proof.
 
+This project includes `generate_qr_codes.py`. It accepts one slug or the batch CSV downloaded from `/admin`, then creates a high-resolution PNG for testing and an SVG for the print layout. For example:
+
+```powershell
+python -m pip install -r requirements-qr.txt
+python generate_qr_codes.py --csv .\tapnation-card-batch-2026-08-29.csv
+```
+
+Match every generated filename and manifest row to the same physical card slug before printing or encoding. Never generate the QR from a customer’s current Instagram, WhatsApp or website destination; that would bypass TapNation and could not be rerouted later.
+
 ## Printer export checklist
 
 - CMYK using the printer’s requested colour profile

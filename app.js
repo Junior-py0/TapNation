@@ -166,7 +166,7 @@ const state = {
 const els = {
   app: $("app"), redirectScreen: $("redirectScreen"), redirectTitle: $("redirectTitle"), redirectText: $("redirectText"), manualOpen: $("manualOpen"),
   landingPage: $("landingPage"), authSection: $("authSection"), dashboard: $("dashboard"), editorSection: $("editorSection"), adminPage: $("adminPage"), landingNav: $("landingNav"), headerCtas: $("headerCtas"), accountActions: $("accountActions"),
-  homeBtn: $("homeBtn"), backHomeBtn: $("backHomeBtn"), showSignupBtn: $("showSignupBtn"), showLoginBtn: $("showLoginBtn"), heroStartBtn: $("heroStartBtn"), closingStartBtn: $("closingStartBtn"), businessCtaBtn: $("businessCtaBtn"), logoutBtn: $("logoutBtn"), accountBtn: $("accountBtn"), adminNavBtn: $("adminNavBtn"), footerAccountBtn: $("footerAccountBtn"),
+  homeBtn: $("homeBtn"), backHomeBtn: $("backHomeBtn"), showSignupBtn: $("showSignupBtn"), showLoginBtn: $("showLoginBtn"), heroStartBtn: $("heroStartBtn"), closingStartBtn: $("closingStartBtn"), businessCtaBtn: $("businessCtaBtn"), logoutBtn: $("logoutBtn"), shopNavBtn: $("shopNavBtn"), dashboardShopBtn: $("dashboardShopBtn"), accountBtn: $("accountBtn"), adminNavBtn: $("adminNavBtn"), footerAccountBtn: $("footerAccountBtn"),
   planBadge: $("planBadge"), footerYear: $("footerYear"), heroDestination: $("heroDestination"),
   authTitle: $("authTitle"), authSubtitle: $("authSubtitle"), authForm: $("authForm"), emailInput: $("emailInput"), passwordInput: $("passwordInput"), authSubmitBtn: $("authSubmitBtn"), switchAuthBtn: $("switchAuthBtn"), authMessage: $("authMessage"),
   userEmail: $("userEmail"), dashboardTapTotal: $("dashboardTapTotal"), dashboardCardTotal: $("dashboardCardTotal"), dashboardPlan: $("dashboardPlan"), openClaimBtn: $("openClaimBtn"), emptyClaimBtn: $("emptyClaimBtn"), claimBox: $("claimBox"), claimForm: $("claimForm"), claimCodeInput: $("claimCodeInput"), claimMessage: $("claimMessage"), emptyCards: $("emptyCards"), cardsGrid: $("cardsGrid"), cardCountLabel: $("cardCountLabel"),
@@ -240,6 +240,8 @@ function wireEvents() {
   els.showLoginBtn.addEventListener("click", () => openAuth("login"));
   els.homeBtn.addEventListener("click", () => state.user ? showDashboard(state.user) : showLanding(true));
   els.backHomeBtn.addEventListener("click", () => showLanding(true));
+  els.shopNavBtn.addEventListener("click", openShop);
+  els.dashboardShopBtn.addEventListener("click", openShop);
   els.accountBtn.addEventListener("click", () => state.user && showDashboard(state.user));
   els.footerAccountBtn.addEventListener("click", () => state.user ? showDashboard(state.user) : openAuth("login"));
   els.adminNavBtn.addEventListener("click", () => showAdminPage());
@@ -303,6 +305,11 @@ function showLanding(updatePath = false) {
   showSection(els.landingPage);
   updateHeader(Boolean(state.user));
   if (updatePath) setAppPath("/");
+}
+
+function openShop() {
+  showLanding(true);
+  window.requestAnimationFrame(() => $("shop")?.scrollIntoView({ behavior: "smooth", block: "start" }));
 }
 
 function openAuth(mode) {
