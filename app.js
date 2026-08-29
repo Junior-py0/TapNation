@@ -1222,7 +1222,15 @@ function normalizeSocialUrl(value, network) {
   const raw = String(value || "").trim();
   if (!raw) return "";
   if (/^https?:\/\//i.test(raw)) return assertHttpUrl(raw);
-  const handle = raw.replace(/^@/, "").replace(/^www\./i, "");
+  const withoutProtocol = raw.replace(/^\/\//, "").replace(/^www\./i, "");
+  if (/^(?:instagram\.com|tiktok\.com)\//i.test(withoutProtocol)) return assertHttpUrl(`https://${withoutProtocol}`);
+  const handle = raw.replace(/^@/, "").replace(/^www\./i, "").replace(/\/+$/, "");
+  if (!handle) return "";
+  if ((network === "instagram" || network === "tiktok") && !/^[a-z0-9._]{1,80}$/i.test(handle)) {
+    throw new Error(`Enter an ${network === "instagram" ? "Instagram" : "TikTok"} @username or paste its profile share link.`);
+  }
+  if (network === "instagram") return assertHttpUrl(`https://www.instagram.com/${encodeURIComponent(handle)}/`);
+  if (network === "tiktok") return assertHttpUrl(`https://www.tiktok.com/@${encodeURIComponent(handle)}`);
   if (handle.includes(".")) return assertHttpUrl(`https://${handle}`);
   const bases = { instagram: "instagram.com/", facebook: "facebook.com/", linkedin: "linkedin.com/in/", tiktok: "tiktok.com/@", youtube: "youtube.com/@", x: "x.com/" };
   return assertHttpUrl(`https://${bases[network]}${handle}`);

@@ -14,6 +14,7 @@ When tapped, the website resolves the card slug in Supabase, counts the tap, and
 - One default living contact template per account
 - Name, phone, public email, headline, bio, company and location fields
 - Instagram, Facebook, WhatsApp, LinkedIn, TikTok, YouTube, X and website links
+- Instagram and TikTok fields accept either an `@username` or a copied profile-share URL, then normalize usernames to their canonical web profile pages
 - Automatic hiding of every empty contact or social field
 - Interactive public actions for calling, WhatsApp, email, link sharing and vCard contact saving
 - Live profile preview while the owner edits their details
