@@ -937,11 +937,11 @@ async function renderDesignPreview() {
 }
 
 const artworkPalettes = {
-  aubergine: { background: "#211a38", secondary: "#302548", accent: "#ff8f70", text: "#fffaf5", quiet: "#d9cfe3" },
-  porcelain: { background: "#f7f2ec", secondary: "#eee6df", accent: "#211a38", text: "#211a38", quiet: "#756d7d" },
-  coral: { background: "#ff8f70", secondary: "#f7795d", accent: "#fffaf5", text: "#211a38", quiet: "#4e3246" },
-  cobalt: { background: "#6179ff", secondary: "#465dd4", accent: "#ff8f70", text: "#fffaf5", quiet: "#dce2ff" },
-  monochrome: { background: "#111111", secondary: "#272727", accent: "#fffaf5", text: "#fffaf5", quiet: "#c9c9c9" },
+  aubergine: { background: "#25212b", secondary: "#302b36", accent: "#c9b5aa", text: "#f7f4f0", quiet: "#b8b1ba" },
+  porcelain: { background: "#f4f1ec", secondary: "#e8e3dc", accent: "#4c4353", text: "#211d27", quiet: "#78717a" },
+  coral: { background: "#a96f62", secondary: "#966156", accent: "#f2e6df", text: "#fbf7f4", quiet: "#e2cec7" },
+  cobalt: { background: "#46556a", secondary: "#39475a", accent: "#d8cabc", text: "#f6f3ef", quiet: "#c8cdd4" },
+  monochrome: { background: "#171717", secondary: "#242424", accent: "#d8d2ca", text: "#f7f6f2", quiet: "#b8b8b8" },
 };
 
 async function renderCardSideCanvas(card, batch, side, resources = {}) {
@@ -991,47 +991,52 @@ function drawCardFace(ctx, x, y, width, height, batch, card, side, logo, qr) {
   ctx.translate(x, y);
   ctx.fillStyle = palette.background;
   ctx.fillRect(0, 0, width, height);
-  const glow = ctx.createRadialGradient(width * .9, height * .08, 15, width * .9, height * .08, width * .65);
-  glow.addColorStop(0, `${palette.accent}55`);
+  const glow = ctx.createRadialGradient(width * .88, height * .12, 15, width * .88, height * .12, width * .7);
+  glow.addColorStop(0, `${palette.accent}24`);
   glow.addColorStop(1, `${palette.accent}00`);
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, width, height);
   ctx.fillStyle = palette.text;
   ctx.textBaseline = "top";
   if (side === "front") {
-    drawArtworkLogo(ctx, logo, 72, 62, 160, 86, palette.text, batch);
-    ctx.font = "800 25px Arial";
-    ctx.fillText("CARDENCE", 72, 170);
-    ctx.font = "800 92px Arial";
-    ctx.fillStyle = palette.accent;
-    ctx.fillText("TAP HERE", 72, 300);
-    ctx.fillStyle = palette.text;
-    ctx.font = "500 31px Arial";
-    ctx.fillText(batch.tagline || "One tap. Every connection.", 76, 420);
+    drawArtworkLogo(ctx, logo, 72, 60, 138, 78, palette.text, batch);
     ctx.font = "700 22px Arial";
+    ctx.fillText("CARDENCE", 72, 170);
+    ctx.strokeStyle = palette.accent;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(72, 244);
+    ctx.lineTo(190, 244);
+    ctx.stroke();
+    ctx.font = "600 44px Arial";
+    ctx.fillStyle = palette.accent;
+    ctx.fillText(batch.tagline || "Connect instantly.", 72, 304);
+    ctx.font = "500 22px Arial";
     ctx.fillStyle = palette.quiet;
-    ctx.fillText(batch.brand_name || "Your living contact profile", 76, 610);
-    drawNfcSymbolMarker(ctx, width - 170, 470, palette.accent, palette.quiet, "NFC TAP ZONE");
+    ctx.fillText(batch.brand_name || "Your digital contact card", 72, 372);
+    ctx.font = "600 18px Arial";
+    ctx.fillText("NFC + QR", 72, 620);
+    drawNfcSymbolMarker(ctx, width - 180, 440, palette.accent, palette.quiet, "NFC TAP ZONE");
   } else {
-    ctx.font = "800 25px Arial";
+    ctx.font = "700 23px Arial";
     ctx.fillStyle = palette.text;
     ctx.fillText(batch.brand_name || "CARDENCE", 72, 58);
-    ctx.font = "700 24px Arial";
+    ctx.font = "600 20px Arial";
     ctx.fillStyle = palette.quiet;
-    ctx.fillText("SCAN TO CONNECT", 72, 110);
+    ctx.fillText("SCAN OR TAP TO CONNECT", 72, 108);
     if (qr) {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(width - 400, 106, 300, 300);
       ctx.drawImage(qr, width - 390, 116, 280, 280);
     }
-    ctx.font = "500 27px Arial";
+    ctx.font = "500 24px Arial";
     ctx.fillStyle = palette.text;
     ctx.fillText("Hold your phone near the card", 72, 270);
     ctx.fillText("or scan the QR code.", 72, 310);
-    ctx.font = "700 22px monospace";
+    ctx.font = "600 19px monospace";
     ctx.fillStyle = palette.quiet;
     ctx.fillText(`CARD ${String(card.batch_position || "").padStart(2, "0")} · ${card.slug || ""}`, 72, 610);
-    drawNfcSymbolMarker(ctx, 170, 470, palette.accent, palette.quiet, "ALIGN · NFC TAP ZONE");
+    drawNfcSymbolMarker(ctx, 180, 440, palette.accent, palette.quiet, "ALIGN · NFC TAP ZONE");
   }
   ctx.restore();
 }
@@ -1209,30 +1214,6 @@ function drawPdfCardMarks(doc, x, y, side, card, cardWidth, cardHeight) {
   doc.line(trimX, trimY + trimHeight + gap, trimX, trimY + trimHeight + gap + mark);
   doc.line(trimX + trimWidth + gap, trimY + trimHeight, trimX + trimWidth + gap + mark, trimY + trimHeight);
   doc.line(trimX + trimWidth, trimY + trimHeight + gap, trimX + trimWidth, trimY + trimHeight + gap + mark);
-  if (side === "back") {
-    // This overlay makes the NFC placement easy to spot when the back sheet is used as a registration guide.
-    drawPdfNfcMarker(doc, x + 14.4, y + 39.8);
-  }
-}
-
-function drawPdfNfcMarker(doc, x, y) {
-  const coral = [247, 121, 93];
-  const ink = [33, 26, 56];
-  doc.setDrawColor(...coral);
-  doc.setLineWidth(.55);
-  [2.3, 4.2, 6.1].forEach((radius) => doc.circle(x, y, radius, "S"));
-  doc.setFillColor(...coral);
-  doc.circle(x, y, .9, "F");
-  doc.setDrawColor(...ink);
-  doc.setLineWidth(.3);
-  doc.line(x - 8, y, x - 6.8, y);
-  doc.line(x + 6.8, y, x + 8, y);
-  doc.line(x, y - 8, x, y - 6.8);
-  doc.line(x, y + 6.8, x, y + 8);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(3.7);
-  doc.setTextColor(...ink);
-  doc.text("NFC TAP ZONE", x + 8, y + 1.3);
 }
 
 async function printActivationPack(cards, batch) {
