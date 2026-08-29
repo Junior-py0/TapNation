@@ -127,8 +127,8 @@ begin
 
   for i in 1..v_quantity loop
     loop
-      v_slug := upper(substr(encode(gen_random_bytes(8), 'hex'), 1, 10));
-      v_claim_code := upper(substr(encode(gen_random_bytes(6), 'hex'), 1, 8));
+      v_slug := upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 10));
+      v_claim_code := upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 8));
       v_card_name := left(v_prefix || ' ' || i::text, 40);
       begin
         insert into public.cards (
@@ -276,4 +276,3 @@ $$;
 
 revoke all on function public.admin_update_card_production_status(uuid, text) from public;
 grant execute on function public.admin_update_card_production_status(uuid, text) to authenticated;
-

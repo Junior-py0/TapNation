@@ -1328,8 +1328,9 @@ function showToast(message) {
 
 function friendlyError(error) {
   const text = String(error?.message || error || "Something went wrong.");
-  if (/admin_create_card_batch|admin_get_batches|admin_get_batch_cards|admin_update_card_production_status/i.test(text)) return "The latest Cardence admin batch migration still needs to be applied.";
-  if (/update_contact_profile|function.*does not exist|schema cache|destination_type_check/i.test(text)) return "The Cardence contact-profile database upgrade still needs to be applied.";
+  if (/admin_create_card_batch|admin_get_batches|admin_get_batch_cards|admin_update_card_production_status|card_batches|production_status/i.test(text)) return "The latest Cardence admin batch migration still needs to be applied.";
+  if (/update_contact_profile|destination_type_check/i.test(text)) return "The Cardence contact-profile database upgrade still needs to be applied.";
+  if (/function.*does not exist|schema cache/i.test(text)) return "The latest Cardence database migration still needs to be applied.";
   if (/invalid login credentials/i.test(text)) return "Incorrect email or password.";
   if (/email not confirmed/i.test(text)) return "Confirm your email before logging in.";
   if (/user already registered/i.test(text)) return "That email already has an account.";

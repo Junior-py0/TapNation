@@ -464,8 +464,8 @@ begin
 
   for i in 1..v_quantity loop
     loop
-      v_slug := upper(substr(encode(gen_random_bytes(8), 'hex'), 1, 10));
-      v_claim_code := upper(substr(encode(gen_random_bytes(6), 'hex'), 1, 8));
+      v_slug := upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 10));
+      v_claim_code := upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 8));
       v_card_name := left(v_prefix || ' ' || i::text, 40);
       begin
         insert into public.cards (slug, claim_code, card_name)
@@ -497,8 +497,8 @@ begin
   if not exists (select 1 from public.cards) then
     insert into public.cards (slug, claim_code, card_name)
     select
-      upper(substr(encode(gen_random_bytes(8), 'hex'), 1, 10)),
-      upper(substr(encode(gen_random_bytes(6), 'hex'), 1, 8)),
+      upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 10)),
+      upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 8)),
       'TapNation Card ' || generate_series
     from generate_series(1, 4);
   end if;
@@ -722,8 +722,8 @@ begin
 
   for i in 1..v_quantity loop
     loop
-      v_slug := upper(substr(encode(gen_random_bytes(8), 'hex'), 1, 10));
-      v_claim_code := upper(substr(encode(gen_random_bytes(6), 'hex'), 1, 8));
+      v_slug := upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 10));
+      v_claim_code := upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 8));
       v_card_name := left(v_prefix || ' ' || i::text, 40);
       begin
         insert into public.cards (
