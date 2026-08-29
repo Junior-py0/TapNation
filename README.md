@@ -27,16 +27,16 @@ When tapped, the website resolves the card slug in Supabase, counts the tap, and
 
 ## Files
 
-- `index.html` — account/login entry experience, profile editor, public contact page and admin UI
-- `style.css` — responsive visual system
-- `app.js` — Supabase auth, live profiles, two-route card control and inventory tools
-- `supabase.sql` — idempotent database install/upgrade
-- `supabase/functions/` — store orders, delivery quotes, authenticated checkout, direct verification and signed Paystack webhook handling
-- `supabase/migrations/` — deployed database changes, including living contact profiles
-- `CARD_DESIGN_GUIDE.md` — production-ready physical card design guidance
-- `generate_qr_codes.py` — generates matching print/test QR artwork from a slug, URL or admin CSV
-- `requirements-qr.txt` — the small Python QR dependency
-- `_headers` — Cloudflare Pages security headers
+- `index.html`: account/login entry experience, profile editor, public contact page and admin UI
+- `style.css`: responsive visual system
+- `app.js`: Supabase auth, live profiles, two-route card control and inventory tools
+- `supabase.sql`: idempotent database install/upgrade
+- `supabase/functions/`: store orders, delivery quotes, authenticated checkout, direct verification and signed Paystack webhook handling
+- `supabase/migrations/`: deployed database changes, including living contact profiles
+- `CARD_DESIGN_GUIDE.md`: production-ready physical card design guidance
+- `generate_qr_codes.py`: generates matching print/test QR artwork from a slug, URL or admin CSV
+- `requirements-qr.txt`: the small Python QR dependency
+- `_headers`: Cloudflare Pages security headers
 
 ## 1. Upgrade Supabase first
 
@@ -60,7 +60,7 @@ select id from auth.users where email = 'YOUR_EMAIL_HERE'
 on conflict (user_id) do nothing;
 ```
 
-Log out and back in, then open `/admin`. The control room can generate 1–100 cards at a time and download their card name, slug, customer access code and permanent NFC URL as CSV.
+Log out and back in, then open `/admin`. The control room can generate 1 to 100 cards at a time and download their card name, slug, customer access code and permanent NFC URL as CSV.
 
 The slug is written to the NFC tag. The separate claim code goes into the customer pack. Never print the claim code on the public face of the card or encode it in the NFC tag.
 
@@ -183,7 +183,7 @@ Or generate a complete batch from the CSV downloaded in `/admin`:
 python generate_qr_codes.py --csv .\tapnation-card-batch-2026-08-29.csv
 ```
 
-The `qr_codes` folder receives a high-resolution PNG, a print-friendly SVG and `qr_manifest.csv`. The encoded address is the permanent `https://tapnation.pages.dev/?c=SLUG` card link—not the current destination—so NFC taps and QR scans use the same Supabase redirect and tap counter.
+The `qr_codes` folder receives a high-resolution PNG, a print-friendly SVG and `qr_manifest.csv`. The encoded address is the permanent `https://tapnation.pages.dev/?c=SLUG` card link, not the current destination. This ensures NFC taps and QR scans use the same Supabase redirect and tap counter.
 
 ## 6. Cloudflare Pages production
 

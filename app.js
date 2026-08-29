@@ -484,7 +484,7 @@ async function saveCard(event) {
 
 async function copyNfcUrl() {
   const url = els.nfcUrlText.textContent;
-  if (!url || url === "—") return;
+  if (!url || url === "Not available") return;
   await copyText(url);
   showToast("Permanent NFC and QR link copied.");
 }
@@ -539,7 +539,7 @@ function redirectError(message) {
 
 function renderPublicProfile(profile) {
   const data = { ...emptyProfile(), ...profile };
-  document.title = `${data.display_name || "Cardence profile"} — Cardence`;
+  document.title = `${data.display_name || "Cardence profile"} | Cardence`;
   els.redirectScreen.classList.add("hidden");
   els.publicProfileScreen.classList.remove("hidden");
   els.publicInitials.textContent = initials(data.display_name);

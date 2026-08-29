@@ -1,6 +1,6 @@
 # TapNation physical card design guide
 
-This guide is for a standard CR80 PVC card—the familiar bank-card format.
+This guide is for a standard CR80 PVC card, the familiar bank-card format.
 
 ## Production canvas
 
@@ -91,7 +91,7 @@ This creates an obvious Business-tier product without changing the TapNation lay
 
 ## QR fallback
 
-Generate each QR from that card’s permanent NFC URL, not its current destination. That preserves the ability to reroute later. Use high error correction, a clear quiet zone, and test the final printed size. Around 18–22 mm square is a practical starting point, but always test the printer proof.
+Generate each QR from that card’s permanent NFC URL, not its current destination. That preserves the ability to reroute later. Use high error correction, a clear quiet zone, and test the final printed size. Around 18 to 22 mm square is a practical starting point, but always test the printer proof.
 
 This project includes `generate_qr_codes.py`. It accepts one slug or the batch CSV downloaded from `/admin`, then creates a high-resolution PNG for testing and an SVG for the print layout. For example:
 
