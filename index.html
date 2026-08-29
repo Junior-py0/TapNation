@@ -3,14 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#07120f" />
-  <meta name="description" content="Create one living TapNation contact profile and share it with every tap or QR scan." />
-  <title>TapNation — Your details, one tap away</title>
+  <meta name="theme-color" content="#211a38" />
+  <meta name="description" content="Create one living Cardence contact profile and share it with every tap or QR scan." />
+  <meta property="og:title" content="Cardence — Your details, one tap away" />
+  <meta property="og:description" content="One living contact profile for every tap, scan and new connection." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Cardence" />
+  <meta property="og:url" content="https://tapnation.pages.dev/" />
+  <meta property="og:image" content="https://tapnation.pages.dev/og-cardence.png" />
+  <meta property="og:image:width" content="1672" />
+  <meta property="og:image:height" content="941" />
+  <meta property="og:image:alt" content="Cardence — Your details, one tap away." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Cardence — Your details, one tap away" />
+  <meta name="twitter:description" content="One living contact profile for every tap, scan and new connection." />
+  <meta name="twitter:image" content="https://tapnation.pages.dev/og-cardence.png" />
+  <title>Cardence — Your details, one tap away</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=6" />
+  <link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
   <div class="ambient ambient-one" aria-hidden="true"></div>
@@ -18,11 +31,11 @@
 
   <div id="redirectScreen" class="screen hidden" aria-live="polite">
     <div class="redirect-card panel-shell">
-      <a class="brand-mark large" href="./" aria-label="TapNation home"><span>TN</span></a>
+      <a class="brand-mark large" href="./" aria-label="Cardence home"><span>C</span></a>
       <div class="spinner" aria-hidden="true"></div>
       <p class="kicker">TAP DETECTED</p>
       <h1 id="redirectTitle">Opening your destination…</h1>
-      <p id="redirectText">TapNation is loading the latest information.</p>
+      <p id="redirectText">Cardence is loading the latest information.</p>
       <a id="manualOpen" class="button primary hidden" href="#">Open destination <span>↗</span></a>
     </div>
   </div>
@@ -31,15 +44,15 @@
     <div class="public-profile-shell">
       <div class="public-profile-cover"></div>
       <div class="public-profile-body">
-        <div id="publicInitials" class="public-profile-avatar">TN</div>
+        <div id="publicInitials" class="public-profile-avatar">C</div>
         <p class="public-profile-eyebrow"><i></i> AVAILABLE TO CONNECT</p>
-        <h1 id="publicName">TapNation profile</h1>
+        <h1 id="publicName">Cardence profile</h1>
         <p id="publicHeadline" class="public-profile-headline hidden"></p>
         <p id="publicBio" class="public-profile-bio hidden"></p>
         <div id="publicPrimaryActions" class="public-primary-actions"></div>
         <div id="publicSocialLinks" class="public-social-links"></div>
         <dl id="publicDetails" class="public-details"></dl>
-        <div class="public-profile-footer"><span class="brand-mark"><span>TN</span></span><span>Shared with TapNation</span></div>
+        <div class="public-profile-footer"><span class="brand-mark"><span>C</span></span><span>Shared with Cardence</span></div>
       </div>
     </div>
     <button id="publicShareBtn" class="public-share-button" type="button" aria-label="Share this profile">↗</button>
@@ -48,7 +61,7 @@
   <div id="app">
     <header class="site-header">
       <div class="header-inner">
-        <button id="homeBtn" class="brand button-reset" aria-label="TapNation home"><span class="brand-mark"><span>TN</span></span><span>TapNation</span></button>
+        <button id="homeBtn" class="brand button-reset" aria-label="Cardence home"><span class="brand-mark"><span>C</span></span><span>Cardence</span></button>
         <nav id="landingNav" class="landing-nav" aria-label="Main navigation"><button id="accountsNavBtn" class="button-reset">Accounts</button></nav>
         <div id="headerCtas" class="header-actions"><button id="showLoginBtn" class="button text-button">Log in</button><button id="showSignupBtn" class="button primary compact">Create account <span>↗</span></button></div>
         <div id="accountActions" class="header-actions hidden"><button id="accountBtn" class="button text-button compact">Account</button><button id="adminNavBtn" class="button secondary compact hidden">Admin</button><button id="logoutBtn" class="button secondary compact">Log out</button></div>
@@ -62,21 +75,21 @@
             <div class="pill"><span class="pulse-dot"></span> Your living contact card</div>
             <p class="kicker">ONE PROFILE. ALWAYS CURRENT.</p>
             <h1>Your details,<br /><span class="gradient-text">one tap away.</span></h1>
-            <p class="hero-lede">Create one clean profile for your name, number and socials. Add only what matters—TapNation automatically hides everything you leave empty.</p>
+            <p class="hero-lede">Create one clean profile for your name, number and socials. Add only what matters—Cardence automatically hides everything you leave empty.</p>
             <div class="hero-actions"><button id="heroStartBtn" class="button primary large-button">Create your profile <span>↗</span></button><button id="heroLoginBtn" class="button secondary large-button">Log in</button></div>
             <div class="trust-row"><span><b>One</b> simple account</span><span><b>Live</b> profile updates</span><span><b>Zero</b> stale buttons</span></div>
           </div>
-          <div class="living-profile-demo reveal reveal-delay" aria-label="Example TapNation contact profile">
+          <div class="living-profile-demo reveal reveal-delay" aria-label="Example Cardence contact profile">
             <div class="demo-profile-cover"></div><div class="demo-avatar">AM</div><p class="demo-status"><i></i> AVAILABLE TO CONNECT</p><h2>Alex Morgan</h2><p>Creative director · Johannesburg</p><div class="demo-primary-actions"><span>Call</span><span>WhatsApp</span><span>Save contact</span></div><div class="demo-socials"><span>Instagram</span><span>LinkedIn</span><span>Website</span></div><small>Only the details you add will appear.</small>
           </div>
         </section>
         <section class="profile-promise section-wrap"><div><p class="kicker">BUILT TO STAY USEFUL</p><h2>Change it once.<br />Every card stays current.</h2></div><div><span>01</span><p>Build your default contact profile after creating an account.</p><span>02</span><p>Choose whether each card opens that profile or another link.</p><span>03</span><p>Edit your details anytime—every future tap sees the latest version.</p></div></section>
-        <footer class="site-footer section-wrap"><div class="brand"><span class="brand-mark"><span>TN</span></span><span>TapNation</span></div><p>A living contact profile for every tap.</p><div><button id="footerLoginBtn" class="button-reset">Log in</button><button id="footerSignupBtn" class="button-reset">Create account</button></div><small>© <span id="footerYear"></span> TapNation.</small></footer>
+        <footer class="site-footer section-wrap"><div class="brand"><span class="brand-mark"><span>C</span></span><span>Cardence</span></div><p>A living contact profile for every tap.</p><div><button id="footerLoginBtn" class="button-reset">Log in</button><button id="footerSignupBtn" class="button-reset">Create account</button></div><small>© <span id="footerYear"></span> Cardence.</small></footer>
       </div>
 
       <section id="authSection" class="auth-layout hidden">
-        <div class="auth-story"><button id="backHomeBtn" class="button text-button back-home">← Back home</button><div><p class="kicker">YOUR DETAILS. ALWAYS CURRENT.</p><h1>Create once.<br /><span class="gradient-text">Share anywhere.</span></h1><p>Your profile becomes the useful page behind every card—with working call, message, social and save-contact actions.</p></div><div class="auth-card-mini"><span class="mini-logo">TN</span><b>)))</b><small>ONE PROFILE. EVERY CONNECTION.</small></div></div>
-        <div class="auth-panel panel-shell"><p class="kicker">TAPNATION ACCOUNT</p><h2 id="authTitle">Create your account</h2><p id="authSubtitle" class="subtle">Your default contact template is waiting.</p><form id="authForm" class="form-stack"><label>Email address<input id="emailInput" type="email" autocomplete="email" required placeholder="you@example.com" /></label><label>Password<input id="passwordInput" type="password" autocomplete="current-password" required minlength="6" placeholder="At least 6 characters" /></label><button id="authSubmitBtn" class="button primary full" type="submit">Create account <span>↗</span></button></form><p id="authMessage" class="message" role="status"></p><button id="switchAuthBtn" class="button text-button auth-switch">Already have an account? <b>Log in</b></button></div>
+        <div class="auth-story"><button id="backHomeBtn" class="button text-button back-home">← Back home</button><div><p class="kicker">YOUR DETAILS. ALWAYS CURRENT.</p><h1>Create once.<br /><span class="gradient-text">Share anywhere.</span></h1><p>Your profile becomes the useful page behind every card—with working call, message, social and save-contact actions.</p></div><div class="auth-card-mini"><span class="mini-logo">C</span><b>)))</b><small>ONE PROFILE. EVERY CONNECTION.</small></div></div>
+        <div class="auth-panel panel-shell"><p class="kicker">CARDENCE ACCOUNT</p><h2 id="authTitle">Create your account</h2><p id="authSubtitle" class="subtle">Your default contact template is waiting.</p><form id="authForm" class="form-stack"><label>Email address<input id="emailInput" type="email" autocomplete="email" required placeholder="you@example.com" /></label><label>Password<input id="passwordInput" type="password" autocomplete="current-password" required minlength="6" placeholder="At least 6 characters" /></label><button id="authSubmitBtn" class="button primary full" type="submit">Create account <span>↗</span></button></form><p id="authMessage" class="message" role="status"></p><button id="switchAuthBtn" class="button text-button auth-switch">Already have an account? <b>Log in</b></button></div>
       </section>
 
       <section id="dashboard" class="app-shell hidden">
@@ -91,19 +104,19 @@
               <div class="profile-form-section"><div class="profile-form-title"><span>02</span><div><h3>Socials and links</h3><p>Leave any field empty and its button disappears.</p></div></div><div class="form-grid two"><label>Instagram<input id="profileInstagram" maxlength="240" placeholder="@username" /></label><label>Facebook<input id="profileFacebook" maxlength="240" placeholder="facebook.com/yourpage" /></label></div><div class="form-grid two"><label>WhatsApp<input id="profileWhatsapp" maxlength="32" placeholder="+27 72 123 4567" /></label><label>LinkedIn<input id="profileLinkedin" maxlength="240" placeholder="linkedin.com/in/yourname" /></label></div><div class="form-grid two"><label>TikTok<input id="profileTiktok" maxlength="240" placeholder="@username" /></label><label>YouTube<input id="profileYoutube" maxlength="240" placeholder="youtube.com/@yourchannel" /></label></div><div class="form-grid two"><label>X / Twitter<input id="profileX" maxlength="240" placeholder="@username" /></label><label>Website<input id="profileWebsite" maxlength="240" placeholder="https://yourwebsite.com" /></label></div></div>
               <button id="saveProfileBtn" class="button primary full save-button" type="submit">Save contact profile <span>↗</span></button><p id="profileMessage" class="message" role="status"></p>
             </form>
-            <aside class="profile-preview-panel"><div class="preview-label"><span>LIVE PREVIEW</span><small>Updates while you type</small></div><div class="mini-public-profile"><div class="mini-profile-cover"></div><div id="previewProfileInitials" class="mini-profile-avatar">TN</div><h3 id="previewProfileName">Your name</h3><p id="previewProfileHeadline">Your role or headline</p><div id="previewProfileActions" class="mini-profile-actions"><span>Add a phone number to activate contact actions</span></div><div id="previewProfileSocials" class="mini-profile-socials"></div></div><p class="preview-privacy-note"><span>✓</span> Every public card page is generated from your latest saved details.</p></aside>
+            <aside class="profile-preview-panel"><div class="preview-label"><span>LIVE PREVIEW</span><small>Updates while you type</small></div><div class="mini-public-profile"><div class="mini-profile-cover"></div><div id="previewProfileInitials" class="mini-profile-avatar">C</div><h3 id="previewProfileName">Your name</h3><p id="previewProfileHeadline">Your role or headline</p><div id="previewProfileActions" class="mini-profile-actions"><span>Add a phone number to activate contact actions</span></div><div id="previewProfileSocials" class="mini-profile-socials"></div></div><p class="preview-privacy-note"><span>✓</span> Every public card page is generated from your latest saved details.</p></aside>
           </div>
         </section>
 
-        <div id="claimBox" class="panel-shell action-panel hidden"><div><p class="kicker">ADD TO ACCOUNT</p><h3>Claim a new card</h3><p>Enter the activation code printed in your TapNation pack.</p></div><form id="claimForm" class="claim-form"><input id="claimCodeInput" required maxlength="20" autocomplete="off" placeholder="e.g. 7K4M9Q" /><button class="button primary" type="submit">Claim card</button></form><p id="claimMessage" class="message" role="status"></p></div>
+        <div id="claimBox" class="panel-shell action-panel hidden"><div><p class="kicker">ADD TO ACCOUNT</p><h3>Claim a new card</h3><p>Enter the activation code printed in your Cardence pack.</p></div><form id="claimForm" class="claim-form"><input id="claimCodeInput" required maxlength="20" autocomplete="off" placeholder="e.g. 7K4M9Q" /><button class="button primary" type="submit">Claim card</button></form><p id="claimMessage" class="message" role="status"></p></div>
         <div class="dashboard-section-head cards-section-head"><div><p class="kicker">MY CARDS</p><h2>Where each tap goes</h2><p>Choose your contact profile or one other link for every card.</p></div><span id="cardCountLabel">0 cards</span></div>
-        <div id="emptyCards" class="empty-state hidden"><div class="empty-card-visual"><span>TN</span><b>+</b></div><h3>Connect your first card.</h3><p>Claim the activation code that came with it, then send taps to your profile or another page.</p><button id="emptyClaimBtn" class="button primary">Claim your first card</button></div><div id="cardsGrid" class="cards-grid"></div>
+        <div id="emptyCards" class="empty-state hidden"><div class="empty-card-visual"><span>C</span><b>+</b></div><h3>Connect your first card.</h3><p>Claim the activation code that came with it, then send taps to your profile or another page.</p><button id="emptyClaimBtn" class="button primary">Claim your first card</button></div><div id="cardsGrid" class="cards-grid"></div>
       </section>
 
       <section id="adminPage" class="admin-shell hidden">
-        <div class="admin-page-head"><div><button id="adminBackBtn" class="button text-button back-to-dashboard">← Back to account</button><p class="kicker">TAPNATION OPERATIONS</p><h1>Admin control room.</h1><p class="subtle">Create stock and track contact-profile activations.</p></div><button id="refreshAdminBtn" class="button secondary">Refresh data</button></div>
+        <div class="admin-page-head"><div><button id="adminBackBtn" class="button text-button back-to-dashboard">← Back to account</button><p class="kicker">CARDENCE OPERATIONS</p><h1>Admin control room.</h1><p class="subtle">Create stock and track contact-profile activations.</p></div><button id="refreshAdminBtn" class="button secondary">Refresh data</button></div>
         <div class="admin-metrics"><article><small>Total cards made</small><strong id="adminTotalCards">—</strong><span>All inventory</span></article><article><small>Cards with routes</small><strong id="adminLinkedCards">—</strong><span>Ready to open</span></article><article><small>Activated cards</small><strong id="adminActivatedCards">—</strong><span>Claimed by customers</span></article><article><small>Ready to claim</small><strong id="adminUnclaimedCards">—</strong><span>Available stock</span></article></div>
-        <section class="admin-section panel-shell"><div class="dashboard-section-head"><div><p class="kicker">CREATE INVENTORY</p><h2>Generate cards & access codes</h2><p>Each NFC/QR URL stays permanent. The separate code lets the customer claim it.</p></div><span class="admin-badge">ADMIN</span></div><form id="inventoryForm" class="inventory-form"><label>Number of cards<input id="inventoryQuantity" type="number" min="1" max="100" value="10" required /></label><label>Name prefix<input id="inventoryPrefix" maxlength="28" value="TapNation Card" placeholder="TapNation Card" /></label><button id="generateCardsBtn" class="button primary" type="submit">Generate cards</button></form><p id="inventoryMessage" class="message" role="status"></p><div id="inventoryResults" class="inventory-results hidden"><div class="inventory-result-head"><strong>New card batch</strong><button id="downloadInventoryBtn" class="button secondary compact" type="button">Download CSV</button></div><div class="table-scroll"><table><thead><tr><th>Card</th><th>Slug</th><th>Access code</th><th>Permanent NFC/QR URL</th></tr></thead><tbody id="inventoryTableBody"></tbody></table></div></div></section>
+        <section class="admin-section panel-shell"><div class="dashboard-section-head"><div><p class="kicker">CREATE INVENTORY</p><h2>Generate cards & access codes</h2><p>Each NFC/QR URL stays permanent. The separate code lets the customer claim it.</p></div><span class="admin-badge">ADMIN</span></div><form id="inventoryForm" class="inventory-form"><label>Number of cards<input id="inventoryQuantity" type="number" min="1" max="100" value="10" required /></label><label>Name prefix<input id="inventoryPrefix" maxlength="28" value="Cardence Card" placeholder="Cardence Card" /></label><button id="generateCardsBtn" class="button primary" type="submit">Generate cards</button></form><p id="inventoryMessage" class="message" role="status"></p><div id="inventoryResults" class="inventory-results hidden"><div class="inventory-result-head"><strong>New card batch</strong><button id="downloadInventoryBtn" class="button secondary compact" type="button">Download CSV</button></div><div class="table-scroll"><table><thead><tr><th>Card</th><th>Slug</th><th>Access code</th><th>Permanent NFC/QR URL</th></tr></thead><tbody id="inventoryTableBody"></tbody></table></div></div></section>
         <section class="admin-section panel-shell"><div class="dashboard-section-head"><div><p class="kicker">LATEST INVENTORY</p><h2>Recent cards</h2></div><span id="adminCardsLabel">Loading…</span></div><div class="table-scroll"><table><thead><tr><th>Card</th><th>Slug</th><th>Route</th><th>Activation</th><th>Taps</th></tr></thead><tbody id="adminCardsBody"><tr><td colspan="5">Loading card inventory…</td></tr></tbody></table></div></section>
         <p id="adminMessage" class="message" role="status"></p>
       </section>
@@ -114,18 +127,18 @@
         <div class="editor-layout">
           <div class="editor-main panel-shell"><form id="cardForm" class="form-stack">
             <label>Card name<input id="cardNameInput" maxlength="40" placeholder="My main card" /></label>
-            <fieldset class="destination-picker two-route-picker"><legend>What should open after a tap?</legend><p>Keep your card useful with one of two clear routes.</p><div class="type-grid"><button class="type-btn active" data-type="profile" type="button"><span>◉</span><b>Contact profile</b><small>Your live TapNation page</small></button><button class="type-btn" data-type="url" type="button"><span>↗</span><b>Other link</b><small>Any secure website</small></button></div></fieldset>
+            <fieldset class="destination-picker two-route-picker"><legend>What should open after a tap?</legend><p>Keep your card useful with one of two clear routes.</p><div class="type-grid"><button class="type-btn active" data-type="profile" type="button"><span>◉</span><b>Contact profile</b><small>Your live Cardence page</small></button><button class="type-btn" data-type="url" type="button"><span>↗</span><b>Other link</b><small>Any secure website</small></button></div></fieldset>
             <div id="profileRouteNotice" class="profile-route-notice"><span>✓</span><div><strong>Always uses your latest profile</strong><p>Update your contact details once in your account. You never need to reprogram the NFC card or QR code.</p></div></div>
             <div id="otherRouteField" class="smart-field hidden"><div class="smart-field-head"><label for="destinationInput">Other destination</label><span>FULL HTTPS LINK</span></div><input id="destinationInput" type="url" autocomplete="off" placeholder="https://yourwebsite.com" /><p class="field-hint">Paste the complete secure address, including https://.</p><div class="how-to-box"><span class="how-icon">?</span><div><strong>Use this for anything outside your profile</strong><p>Open the exact page, form, video or menu you want to share. Copy its full browser address and paste it above.</p><code>https://yourwebsite.com</code></div></div></div>
             <button class="button primary full save-button" type="submit">Save card route <span>↗</span></button><p id="saveMessage" class="message" role="status"></p>
           </form></div>
-          <aside class="editor-side"><div class="physical-card-preview theme-midnight-card"><div class="card-shine"></div><div class="product-card-top"><span class="mini-logo">TN</span><span class="contactless">)))</span></div><div class="product-card-copy"><small>ONE PROFILE. ALWAYS CURRENT.</small><strong id="previewName">MY TAP CARD</strong><span id="previewDestination">CONTACT PROFILE ↗</span></div></div><div class="side-box"><span>Permanent NFC & QR link</span><code id="nfcUrlText">—</code><div class="side-actions"><button id="copyNfcBtn" class="button secondary compact" type="button">Copy link</button><a id="testNfcBtn" class="button secondary compact" target="_blank" rel="noopener">Test page ↗</a></div></div><div class="side-stat"><div><span>Total taps</span><strong id="tapCount">0</strong></div><div class="stat-spark"><i></i><i></i><i></i><i></i><i></i></div></div><div class="print-tip"><span>✦</span><div><strong>No stale contact details</strong><p>The contact route renders from your newest saved profile every time somebody taps or scans.</p></div></div></aside>
+          <aside class="editor-side"><div class="physical-card-preview theme-midnight-card"><div class="card-shine"></div><div class="product-card-top"><span class="mini-logo">C</span><span class="contactless">)))</span></div><div class="product-card-copy"><small>ONE PROFILE. ALWAYS CURRENT.</small><strong id="previewName">MY CARDENCE CARD</strong><span id="previewDestination">CONTACT PROFILE ↗</span></div></div><div class="side-box"><span>Permanent NFC & QR link</span><code id="nfcUrlText">—</code><div class="side-actions"><button id="copyNfcBtn" class="button secondary compact" type="button">Copy link</button><a id="testNfcBtn" class="button secondary compact" target="_blank" rel="noopener">Test page ↗</a></div></div><div class="side-stat"><div><span>Total taps</span><strong id="tapCount">0</strong></div><div class="stat-spark"><i></i><i></i><i></i><i></i><i></i></div></div><div class="print-tip"><span>✦</span><div><strong>No stale contact details</strong><p>The contact route renders from your newest saved profile every time somebody taps or scans.</p></div></div></aside>
         </div>
       </section>
     </main>
   </div>
 
   <div id="toast" class="toast hidden" role="status"></div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js?v=6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js?v=7"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-// TapNation public Supabase configuration.
+// Cardence public Supabase configuration.
 // The publishable key is safe for browser use. Never place a service-role key here.
 const SUPABASE_URL = "https://dqyqkeqdvsidmffaanys.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_iiFisqh9j9h4TJuvtcWEnw_976b5T6U";
@@ -78,7 +78,7 @@ async function boot() {
 
   if (!sb) {
     showLanding();
-    showToast("TapNation has not been connected to Supabase yet.");
+    showToast("Cardence has not been connected to Supabase yet.");
     return;
   }
 
@@ -186,14 +186,14 @@ function openAuth(mode) {
   els.authTitle.textContent = signup ? "Create your account" : "Welcome back";
   els.authSubtitle.textContent = signup ? "Your default contact template is waiting." : "Log in to update your profile and card routes.";
   els.authSubmitBtn.innerHTML = signup ? "Create account <span>↗</span>" : "Log in <span>↗</span>";
-  els.switchAuthBtn.innerHTML = signup ? "Already have an account? <b>Log in</b>" : "New to TapNation? <b>Create an account</b>";
+  els.switchAuthBtn.innerHTML = signup ? "Already have an account? <b>Log in</b>" : "New to Cardence? <b>Create an account</b>";
   els.passwordInput.autocomplete = signup ? "new-password" : "current-password";
   window.setTimeout(() => els.emailInput.focus(), 50);
 }
 
 async function handleAuth(event) {
   event.preventDefault();
-  if (!sb) return setMessage(els.authMessage, "TapNation is not connected to Supabase.", "error");
+  if (!sb) return setMessage(els.authMessage, "Cardence is not connected to Supabase.", "error");
   const email = els.emailInput.value.trim();
   const password = els.passwordInput.value;
   const signup = els.authForm.dataset.mode === "signup";
@@ -367,11 +367,11 @@ function renderCards() {
   state.cards.forEach((card) => {
     const isProfile = card.destination_type === "profile";
     const routeLabel = isProfile ? "Contact profile" : "Other link";
-    const routeText = isProfile ? (state.profile.display_name || "Your TapNation profile") : (card.destination_url || "No link set");
+    const routeText = isProfile ? (state.profile.display_name || "Your Cardence profile") : (card.destination_url || "No link set");
     const tile = document.createElement("button");
     tile.type = "button";
     tile.className = "card-tile";
-    tile.innerHTML = `<div class="card-tile-head"><span class="card-tile-icon">TN</span><span class="destination-label">${isProfile ? "◉" : "↗"} ${routeLabel}</span></div><div class="card-tile-body"><h3>${escapeHtml(card.card_name || "TapNation Card")}</h3><p>${escapeHtml(routeText)}</p></div><div class="card-tile-footer"><span>${formatNumber(card.tap_count || 0)} taps</span><b>Edit route ↗</b></div>`;
+    tile.innerHTML = `<div class="card-tile-head"><span class="card-tile-icon">C</span><span class="destination-label">${isProfile ? "◉" : "↗"} ${routeLabel}</span></div><div class="card-tile-body"><h3>${escapeHtml(card.card_name || "Cardence Card")}</h3><p>${escapeHtml(routeText)}</p></div><div class="card-tile-footer"><span>${formatNumber(card.tap_count || 0)} taps</span><b>Edit route ↗</b></div>`;
     tile.addEventListener("click", () => openCardEditor(card));
     els.cardsGrid.appendChild(tile);
   });
@@ -409,7 +409,7 @@ function openCardEditor(card) {
   state.destinationType = card.destination_type === "profile" ? "profile" : "url";
   showSection(els.editorSection);
   updateHeader(true);
-  els.cardNameInput.value = card.card_name || "TapNation Card";
+  els.cardNameInput.value = card.card_name || "Cardence Card";
   els.destinationInput.value = state.destinationType === "url" ? (card.destination_url || "") : "";
   els.editorCardTitle.textContent = card.card_name || "Edit card";
   els.previewName.textContent = (card.card_name || "My Tap Card").toUpperCase();
@@ -444,7 +444,7 @@ function markEditorDirty() {
 async function saveCard(event) {
   event.preventDefault();
   if (!state.currentCard) return;
-  const cardName = els.cardNameInput.value.trim() || "TapNation Card";
+  const cardName = els.cardNameInput.value.trim() || "Cardence Card";
   let destinationUrl = null;
   if (state.destinationType === "url") {
     try {
@@ -493,7 +493,7 @@ async function resolveCard(slug) {
   els.app.classList.add("hidden");
   els.publicProfileScreen.classList.add("hidden");
   els.redirectScreen.classList.remove("hidden");
-  if (!sb) return redirectError("TapNation has not been connected yet.");
+  if (!sb) return redirectError("Cardence has not been connected yet.");
   try {
     const { data, error } = await sb.rpc("resolve_card", { p_slug: slug });
     if (error) throw error;
@@ -539,11 +539,11 @@ function redirectError(message) {
 
 function renderPublicProfile(profile) {
   const data = { ...emptyProfile(), ...profile };
-  document.title = `${data.display_name || "TapNation profile"} — TapNation`;
+  document.title = `${data.display_name || "Cardence profile"} — Cardence`;
   els.redirectScreen.classList.add("hidden");
   els.publicProfileScreen.classList.remove("hidden");
   els.publicInitials.textContent = initials(data.display_name);
-  els.publicName.textContent = data.display_name || "TapNation profile";
+  els.publicName.textContent = data.display_name || "Cardence profile";
   setOptionalText(els.publicHeadline, data.headline || [data.company, data.location].filter(Boolean).join(" · "));
   setOptionalText(els.publicBio, data.bio);
 
@@ -571,7 +571,7 @@ function actionLink(href, icon, label, external = false, extraClass = "") {
 function vcardLink(profile) {
   const vcard = buildVCard(profile);
   const href = `data:text/vcard;charset=utf-8,${encodeURIComponent(vcard)}`;
-  return `<a class="public-action" href="${href}" download="${escapeAttribute((profile.display_name || "tapnation-contact").replace(/[^a-z0-9_-]+/gi, "-").toLowerCase())}.vcf"><b>+</b><span>Save contact</span></a>`;
+  return `<a class="public-action" href="${href}" download="${escapeAttribute((profile.display_name || "cardence-contact").replace(/[^a-z0-9_-]+/gi, "-").toLowerCase())}.vcf"><b>+</b><span>Save contact</span></a>`;
 }
 
 function buildVCard(profile) {
@@ -637,14 +637,14 @@ function renderAdminOverview(data) {
     const activated = Boolean(card.owner_id);
     const routed = card.destination_type === "profile" ? activated : Boolean(card.destination_url);
     const route = card.destination_type === "profile" ? "Contact profile" : routed ? "Other link" : "No route";
-    return `<tr><td>${escapeHtml(card.card_name || "TapNation Card")}</td><td><code>${escapeHtml(card.slug || "")}</code></td><td><span class="admin-status ${routed ? "good" : "waiting"}">${escapeHtml(route)}</span></td><td><span class="admin-status ${activated ? "good" : "waiting"}">${activated ? "Claimed" : "Ready"}</span></td><td>${formatNumber(card.tap_count || 0)}</td></tr>`;
+    return `<tr><td>${escapeHtml(card.card_name || "Cardence Card")}</td><td><code>${escapeHtml(card.slug || "")}</code></td><td><span class="admin-status ${routed ? "good" : "waiting"}">${escapeHtml(route)}</span></td><td><span class="admin-status ${activated ? "good" : "waiting"}">${activated ? "Claimed" : "Ready"}</span></td><td>${formatNumber(card.tap_count || 0)}</td></tr>`;
   }).join("") : '<tr><td colspan="5">No cards have been created yet.</td></tr>';
 }
 
 async function generateInventory(event) {
   event.preventDefault();
   const quantity = Math.max(1, Math.min(100, Number(els.inventoryQuantity.value || 1)));
-  const prefix = els.inventoryPrefix.value.trim() || "TapNation Card";
+  const prefix = els.inventoryPrefix.value.trim() || "Cardence Card";
   if (state.preview) return setMessage(els.inventoryMessage, "Inventory generation is disabled in preview mode.");
   els.generateCardsBtn.disabled = true;
   setMessage(els.inventoryMessage, `Generating ${quantity} secure cards…`);
@@ -666,14 +666,14 @@ function downloadInventoryCsv() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `tapnation-card-batch-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.download = `cardence-card-batch-${new Date().toISOString().slice(0, 10)}.csv`;
   link.click();
   URL.revokeObjectURL(url);
 }
 
 function showPreviewDashboard() {
   state.preview = true;
-  state.user = { id: "preview-user", email: "alex@tapnation.co.za" };
+  state.user = { id: "preview-user", email: "alex@cardence.co.za" };
   state.isAdmin = true;
   state.profile = {
     ...emptyProfile(), display_name: "Alex Morgan", phone: "+27 72 123 4567", public_email: "hello@alexmorgan.co.za",
@@ -753,7 +753,7 @@ function safeDestination(value) {
 
 function initials(name) {
   const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return "TN";
+  if (!parts.length) return "C";
   return `${parts[0][0] || ""}${parts.length > 1 ? parts[parts.length - 1][0] : ""}`.toUpperCase();
 }
 
@@ -800,11 +800,11 @@ function showToast(message) {
 
 function friendlyError(error) {
   const text = String(error?.message || error || "Something went wrong.");
-  if (/update_contact_profile|function.*does not exist|schema cache|destination_type_check/i.test(text)) return "The TapNation contact-profile database upgrade still needs to be applied.";
+  if (/update_contact_profile|function.*does not exist|schema cache|destination_type_check/i.test(text)) return "The Cardence contact-profile database upgrade still needs to be applied.";
   if (/invalid login credentials/i.test(text)) return "Incorrect email or password.";
   if (/email not confirmed/i.test(text)) return "Confirm your email before logging in.";
   if (/user already registered/i.test(text)) return "That email already has an account.";
-  if (/failed to fetch|network/i.test(text)) return "Could not reach TapNation. Check your connection and try again.";
+  if (/failed to fetch|network/i.test(text)) return "Could not reach Cardence. Check your connection and try again.";
   return text.replace(/^Error:\s*/i, "");
 }
 
