@@ -6,35 +6,33 @@ TapNation is a static NFC-card website and customer dashboard backed by Supabase
 https://tapnation.pages.dev/?c=A1B2C3D4E5
 ```
 
-When tapped, the website resolves the card slug in Supabase, counts the tap, and opens the destination the owner currently selected. The destination can change without rewriting the NFC tag.
+When tapped, the website resolves the card slug in Supabase, counts the tap, and opens either the owner's live contact profile or one secure external link. Details can change without rewriting the NFC tag or its matching QR code.
 
 ## What this version includes
 
-- Full responsive marketing-site redesign
-- Storefront for Original, custom-branded and bulk NFC cards
-- Address-based delivery quotes with a Bob Go live-rate path and clearly labelled R99 launch fallback
-- Secure logo intake plus order references and invoice/payment-link follow-up
-- Email signup/login and secure card claiming
-- Guided presets for any URL, Instagram, TikTok, YouTube, WhatsApp, Google Reviews, LinkedIn, Facebook, email, phone and Google Maps
-- Clear platform-specific instructions and examples
-- Four visual card-preview themes
-- Starter dashboard with lifetime counts
-- Business dashboard with 7, 30 and 90-day trends plus per-card rankings
-- Paystack Business subscriptions at R99/month or R999/year
-- Protected `/admin` control room with inventory totals, linked/activated counts, recent orders, batch card generation and CSV export
-- One-click Shop navigation from the signed-in account dashboard
+- Focused account creation and login experience with no public storefront
+- One default living contact template per account
+- Name, phone, public email, headline, bio, company and location fields
+- Instagram, Facebook, WhatsApp, LinkedIn, TikTok, YouTube, X and website links
+- Automatic hiding of every empty contact or social field
+- Interactive public actions for calling, WhatsApp, email, link sharing and vCard contact saving
+- Live profile preview while the owner edits their details
+- Two clear card routes: **Contact profile** or **Other link**
+- Email signup/login and secure physical-card claiming
+- Account dashboard with card and lifetime-tap totals
+- Protected `/admin` control room with inventory totals, linked/activated counts, batch card generation and CSV export
 - Print-ready PNG and SVG QR generation from the same permanent URL used by each NFC tag
 - Privacy-light analytics (timestamp + card only; no IP, fingerprint or precise location)
 - Cloudflare Pages-ready static hosting
 
 ## Files
 
-- `index.html` — landing page, auth, customer dashboard, analytics and admin UI
+- `index.html` — account/login entry experience, profile editor, public contact page and admin UI
 - `style.css` — responsive visual system
-- `app.js` — Supabase auth, routing, destination builder, analytics and inventory tools
+- `app.js` — Supabase auth, live profiles, two-route card control and inventory tools
 - `supabase.sql` — idempotent database install/upgrade
 - `supabase/functions/` — store orders, delivery quotes, authenticated checkout, direct verification and signed Paystack webhook handling
-- `supabase/migrations/` — deployed storefront/order/admin database changes
+- `supabase/migrations/` — deployed database changes, including living contact profiles
 - `CARD_DESIGN_GUIDE.md` — production-ready physical card design guidance
 - `generate_qr_codes.py` — generates matching print/test QR artwork from a slug, URL or admin CSV
 - `requirements-qr.txt` — the small Python QR dependency
@@ -50,7 +48,7 @@ In Supabase:
 2. Paste all of `supabase.sql`.
 3. Click **Run**.
 
-The script preserves the existing `cards` rows and adds profiles, plans, tap events, expanded destinations, analytics RPCs and the admin card generator.
+The script preserves existing cards and URLs, converts legacy destination presets into the new two-route model, and adds the contact-profile fields and secure RPCs.
 
 ### Give yourself the admin inventory tool
 
@@ -66,9 +64,9 @@ Log out and back in, then open `/admin`. The control room can generate 1–100 c
 
 The slug is written to the NFC tag. The separate claim code goes into the customer pack. Never print the claim code on the public face of the card or encode it in the NFC tag.
 
-### Enable Business manually for a test/customer account
+### Legacy Business access
 
-The real checkout uses Paystack. For a free internal test account, an owner can still grant Business manually:
+The earlier Business plan data is preserved for compatibility, but the streamlined account/profile website no longer presents an upgrade flow. An owner can still grant the legacy flag manually if older analytics tooling needs it:
 
 ```sql
 update public.profiles
@@ -78,9 +76,9 @@ where id = (select id from auth.users where email = 'CUSTOMER_EMAIL_HERE');
 
 The next login unlocks the same daily analytics as a paid account.
 
-## 2. Paystack Business billing
+## 2. Retained payment backend
 
-The browser calls `tapnation-business-checkout`; only an authenticated user can start checkout. The secret key stays in Supabase Edge Function secrets. On return, `tapnation-business-verify` verifies the transaction directly with Paystack. The webhook independently validates Paystack's SHA-512 signature, verifies the transaction again, records it idempotently, and only then updates `profiles.plan`.
+The Paystack Edge Functions remain in the repository so previous work is not destroyed, but the streamlined website does not call or display them.
 
 Required TapNation Edge Function secrets:
 
@@ -107,9 +105,9 @@ https://dqyqkeqdvsidmffaanys.supabase.co/functions/v1/tapnation-paystack-webhook
 
 Paystack is currently in Test mode. Switch the TapNation secret and plan codes to their live equivalents only after Paystack approves the business and the complete test checkout succeeds.
 
-## 3. Store checkout and Bob Go
+## 3. Retained store and Bob Go backend
 
-`tapnation-store-order` is a public Edge Function with strict server-side pricing and validation. It calculates delivery, saves the order without exposing the orders table, and stores custom logos in a private `order-logos` bucket. Until a live gateway is ready, checkout takes no payment and tells the customer that a secure Yoco payment link or EFT invoice will follow.
+`tapnation-store-order` and the private order/logo data remain deployed for compatibility and record preservation. There is no store surface in the current website.
 
 The deployed launch fallback is R99 and is explicitly labelled as an estimate. Add these Edge Function secrets to switch the same checkout to live Bob Go rates:
 
