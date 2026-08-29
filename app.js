@@ -1334,16 +1334,31 @@ function drawInstructionCard(doc, x, y, width, height, batch) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(5.4);
   doc.setTextColor(117, 109, 125);
-  doc.text("NFC placement", x + 144.5, y + 63, { align: "center" });
-  drawPdfSensor(doc, x + 126, y + 70, "iPhone");
-  drawPdfSensor(doc, x + 151, y + 70, "Android");
-  doc.setFontSize(5.4);
-  doc.setTextColor(...ink);
-  doc.text("Top edge", x + 136.5, y + 130, { align: "center" });
-  doc.text("Upper back", x + 161.5, y + 130, { align: "center" });
+  doc.text("Where to hold your phone", x + 144.5, y + 63, { align: "center" });
+
+  const placementGuides = [
+    { title: "iPhone", text: "Unlock it, then hold the top edge against the card." },
+    { title: "Android", text: "Turn NFC on, then hold the upper back against the card." },
+  ];
+  placementGuides.forEach((guide, index) => {
+    const guideY = y + 70 + index * 31;
+    doc.setFillColor(255, 252, 249);
+    doc.setDrawColor(225, 219, 227);
+    doc.roundedRect(x + 124, guideY, 41, 26, 3, 3, "FD");
+    doc.setFillColor(...coral);
+    doc.circle(x + 130, guideY + 7, 2.2, "F");
+    doc.setTextColor(...ink);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.4);
+    doc.text(guide.title, x + 135, guideY + 8.5);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(5.5);
+    doc.setTextColor(88, 81, 103);
+    doc.text(doc.splitTextToSize(guide.text, 33), x + 128, guideY + 15, { lineHeightFactor: 1.25 });
+  });
   doc.setFontSize(5.1);
   doc.setTextColor(117, 109, 125);
-  doc.text("Move slowly until the phone reacts.", x + 144.5, y + 142, { align: "center" });
+  doc.text("If tapping fails, scan the QR code.", x + 144.5, y + 142, { align: "center" });
 
   doc.setFillColor(...ink);
   doc.roundedRect(x + 10, y + 162, width - 20, 18, 4, 4, "F");
@@ -1358,30 +1373,6 @@ function drawInstructionCard(doc, x, y, width, height, batch) {
   doc.setFontSize(5.6);
   doc.setTextColor(117, 109, 125);
   doc.text("Keep each code private and tape it to the matching card.", x + 10, y + 186);
-}
-
-function drawPdfSensor(doc, x, y, type) {
-  const isIphone = type === "iPhone";
-  doc.setDrawColor(33, 26, 56);
-  doc.setFillColor(isIphone ? 235 : 226, isIphone ? 231 : 236, isIphone ? 245 : 252);
-  doc.setLineWidth(.55);
-  doc.roundedRect(x, y, 20, 52, 3.2, 3.2, "FD");
-  if (isIphone) {
-    doc.setFillColor(33, 26, 56);
-    doc.roundedRect(x + 6, y + 3, 8, 2, 1, 1, "F");
-  } else {
-    doc.setFillColor(33, 26, 56);
-    doc.circle(x + 4.5, y + 5, 1.8, "F");
-  }
-  doc.setDrawColor(247, 121, 93);
-  doc.setLineWidth(.9);
-  doc.circle(x + 10, y + 19, 5.3, "S");
-  doc.setFillColor(255, 143, 112);
-  doc.circle(x + 10, y + 19, 1.5, "F");
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(4.6);
-  doc.setTextColor(33, 26, 56);
-  doc.text(type, x + 10, y + 48, { align: "center" });
 }
 
 function drawCodeLabelsPage(doc, cards, batch, offset) {
@@ -1421,8 +1412,8 @@ async function openActivationPackPrintWindow(cards, batch, copies) {
   const popup = window.open("", "_blank");
   if (!popup) return showToast("Allow popups to print the activation pack.");
   const qrRows = cards.map((card) => `<div class="label"><strong>CARD ${String(card.batch_position || "").padStart(2, "0")}</strong><b>${escapeHtml(card.claim_code || "")}</b><small>Private setup code</small></div>`).join("");
-  const instructions = Array.from({ length: copies }, (_, index) => `<section class="instruction-page"><div class="guide-meta"><strong>${escapeHtml(batch.brand_name || "Cardence")} activation guide</strong><span>Instruction card ${index + 1} of ${copies}</span></div><article class="instruction"><header><b>CARDENCE</b><div><strong>Activate your card</strong><small>Keep this guide with the order</small></div></header><div class="guide-grid"><div class="steps"><h2>Five quick steps</h2><ol><li>Scan the QR code or tap the card.</li><li>Create an account and confirm your email.</li><li>Log in, then choose Add a card.</li><li>Enter the private access code on the label.</li><li>Save your profile or choose another link.</li></ol></div><div class="sensor-panel"><h2>Tap or scan</h2><p>NFC placement</p><div class="sensors"><div class="sensor"><span class="phone iphone"><i></i><b></b></span><strong>iPhone</strong><small>Top edge</small></div><div class="sensor"><span class="phone android"><i></i></span><strong>Android</strong><small>Upper back</small></div></div><em>Move slowly until the phone reacts.</em></div></div><div class="access"><strong>YOUR ACCESS CODE</strong><span>Use the removable label after email confirmation.</span></div><footer>Keep each code private and tape it to the matching card.</footer></article><div class="packing"><strong>PACKING NOTE</strong><span>Include one guide with multi-card orders. Tape each private access-code label to its matching card.</span></div></section>`).join("");
-  popup.document.write(`<!doctype html><title>Cardence activation pack</title><style>@page{size:A4;margin:0}*{box-sizing:border-box}body{margin:0;background:#fcf9f6;font-family:Arial,sans-serif;color:#211a38}.instruction-page{width:210mm;min-height:297mm;padding:11mm 15mm 9mm;page-break-after:always}.guide-meta{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f7795d;padding-bottom:4mm;font-size:9px}.guide-meta span{font-size:7px;color:#756d7d}.instruction{height:190mm;margin-top:7mm;padding:10mm;border:1px dashed #f7795d;border-radius:5mm;background:#fffaf5}.instruction header{display:flex;align-items:center;gap:7mm;border-bottom:1px solid #e1dbe3;padding-bottom:7mm}.instruction header b{padding:5mm 7mm;color:#fff;background:#211a38;border-radius:3mm;font-size:11px}.instruction header strong{font-size:19px;display:block}.instruction header small{font-size:8px;color:#756d7d;display:block;margin-top:1.5mm}.guide-grid{display:grid;grid-template-columns:1fr 51mm;gap:8mm;margin-top:9mm}.steps,.sensor-panel{border:1px solid #eee7e3;border-radius:4mm;padding:7mm;background:#faf7f4}.steps h2,.sensor-panel h2{font-size:11px;margin:0 0 6mm}.steps ol{padding-left:7mm;margin:0;font-size:10px;line-height:2}.sensor-panel{text-align:center;background:#f2f0fa}.sensor-panel p{font-size:8px;color:#756d7d;margin:0 0 5mm}.sensors{display:flex;justify-content:space-around;gap:4mm}.sensor{display:flex;flex-direction:column;align-items:center;font-size:8px}.phone{width:20mm;height:52mm;border:1.2px solid #211a38;border-radius:3mm;position:relative;display:block;background:#ebe7f5}.phone.iphone i{position:absolute;top:3mm;left:6mm;width:8mm;height:2mm;background:#211a38;border-radius:2mm}.phone.android i{position:absolute;top:3mm;left:4mm;width:3mm;height:3mm;background:#211a38;border-radius:50%}.phone:after{content:"";position:absolute;left:5.5mm;top:13mm;width:9mm;height:9mm;border:2px solid #f7795d;border-radius:50%;box-shadow:0 0 0 2px #f7795d inset}.sensor strong{margin-top:3mm}.sensor small{color:#756d7d;font-size:7px;margin-top:1mm}.sensor-panel em{display:block;color:#756d7d;font-size:7px;margin-top:7mm}.access{display:flex;align-items:center;gap:7mm;padding:6mm 7mm;background:#211a38;border-radius:4mm;margin-top:9mm;color:#fffaf5}.access strong{color:#c9ff4a;font-size:9px}.access span{font-size:8px}.instruction footer{font-size:8px;color:#756d7d;margin-top:4mm}.packing{display:flex;gap:6mm;align-items:center;background:#e8efff;border:1px solid #dae2f7;border-radius:4mm;padding:6mm;margin-top:9mm;font-size:8px}.packing strong{font-size:9px}.labels{padding:10mm 15mm;display:grid;grid-template-columns:repeat(3,60mm);grid-auto-rows:20mm;gap:3mm 5mm}.label{position:relative;border:1px dashed #f7795d;padding:3mm;background:#fffaf5}.label strong{font-size:8px;display:block}.label b{font:700 14px monospace;display:block;margin-top:2mm}.label small{font-size:6px;position:absolute;right:3mm;top:3mm;color:#756d7d}</style><h1 style="font-size:12px;padding:8mm 15mm 0">${escapeHtml(batch.brand_name || "Cardence")} activation pack</h1>${instructions}<section class="labels">${qrRows}</section><script>window.onload=()=>window.print()<\/script>`);
+  const instructions = Array.from({ length: copies }, (_, index) => `<section class="instruction-page"><div class="guide-meta"><strong>${escapeHtml(batch.brand_name || "Cardence")} activation guide</strong><span>Instruction card ${index + 1} of ${copies}</span></div><article class="instruction"><header><b>CARDENCE</b><div><strong>Activate your card</strong><small>Keep this guide with the order</small></div></header><div class="guide-grid"><div class="steps"><h2>Five quick steps</h2><ol><li>Scan the QR code or tap the card.</li><li>Create an account and confirm your email.</li><li>Log in, then choose Add a card.</li><li>Enter the private access code on the label.</li><li>Save your profile or choose another link.</li></ol></div><div class="sensor-panel"><h2>Tap or scan</h2><p>Where to hold your phone</p><div class="placement-copy"><div><strong>iPhone</strong><span>Unlock it, then hold the top edge against the card.</span></div><div><strong>Android</strong><span>Turn NFC on, then hold the upper back against the card.</span></div></div><em>If tapping fails, scan the QR code.</em></div></div><div class="access"><strong>YOUR ACCESS CODE</strong><span>Use the removable label after email confirmation.</span></div><footer>Keep each code private and tape it to the matching card.</footer></article><div class="packing"><strong>PACKING NOTE</strong><span>Include one guide with multi-card orders. Tape each private access-code label to its matching card.</span></div></section>`).join("");
+  popup.document.write(`<!doctype html><title>Cardence activation pack</title><style>@page{size:A4;margin:0}*{box-sizing:border-box}body{margin:0;background:#fcf9f6;font-family:Arial,sans-serif;color:#211a38}.instruction-page{width:210mm;min-height:297mm;padding:11mm 15mm 9mm;page-break-after:always}.guide-meta{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f7795d;padding-bottom:4mm;font-size:9px}.guide-meta span{font-size:7px;color:#756d7d}.instruction{height:190mm;margin-top:7mm;padding:10mm;border:1px dashed #f7795d;border-radius:5mm;background:#fffaf5}.instruction header{display:flex;align-items:center;gap:7mm;border-bottom:1px solid #e1dbe3;padding-bottom:7mm}.instruction header b{padding:5mm 7mm;color:#fff;background:#211a38;border-radius:3mm;font-size:11px}.instruction header strong{font-size:19px;display:block}.instruction header small{font-size:8px;color:#756d7d;display:block;margin-top:1.5mm}.guide-grid{display:grid;grid-template-columns:1fr 51mm;gap:8mm;margin-top:9mm}.steps,.sensor-panel{border:1px solid #eee7e3;border-radius:4mm;padding:7mm;background:#faf7f4}.steps h2,.sensor-panel h2{font-size:11px;margin:0 0 6mm}.steps ol{padding-left:7mm;margin:0;font-size:10px;line-height:2}.sensor-panel{text-align:center;background:#f2f0fa}.sensor-panel p{font-size:8px;color:#756d7d;margin:0 0 5mm}.placement-copy{display:grid;gap:4mm;text-align:left}.placement-copy div{padding:4mm;border:1px solid #e1dbe3;border-radius:3mm;background:#fffaf9}.placement-copy strong{display:block;font-size:9px;margin-bottom:1.5mm}.placement-copy span{display:block;color:#585167;font-size:7.5px;line-height:1.45}.sensor-panel em{display:block;color:#756d7d;font-size:7px;margin-top:5mm}.access{display:flex;align-items:center;gap:7mm;padding:6mm 7mm;background:#211a38;border-radius:4mm;margin-top:9mm;color:#fffaf5}.access strong{color:#c9ff4a;font-size:9px}.access span{font-size:8px}.instruction footer{font-size:8px;color:#756d7d;margin-top:4mm}.packing{display:flex;gap:6mm;align-items:center;background:#e8efff;border:1px solid #dae2f7;border-radius:4mm;padding:6mm;margin-top:9mm;font-size:8px}.packing strong{font-size:9px}.labels{padding:10mm 15mm;display:grid;grid-template-columns:repeat(3,60mm);grid-auto-rows:20mm;gap:3mm 5mm}.label{position:relative;border:1px dashed #f7795d;padding:3mm;background:#fffaf5}.label strong{font-size:8px;display:block}.label b{font:700 14px monospace;display:block;margin-top:2mm}.label small{font-size:6px;position:absolute;right:3mm;top:3mm;color:#756d7d}</style><h1 style="font-size:12px;padding:8mm 15mm 0">${escapeHtml(batch.brand_name || "Cardence")} activation pack</h1>${instructions}<section class="labels">${qrRows}</section><script>window.onload=()=>window.print()<\/script>`);
   popup.document.close();
 }
 

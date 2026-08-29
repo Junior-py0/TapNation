@@ -23,7 +23,7 @@ When tapped, the website resolves the card slug in Supabase, counts the tap, and
 - Account dashboard with card and lifetime-tap totals
 - Protected `/admin` control room with inventory totals, linked/activated counts, saved batch history and production status
 - Batch tools for 1 to 500 cards, permanent URLs, access codes, matching QR codes, artwork exports and cross-device copy actions
-- Print-ready activation packs with iPhone and Android placement diagrams, dashed cutlines, an instruction card and one cut-out label per card
+- Print-ready activation packs with clear iPhone and Android placement instructions, dashed cutlines, an instruction card and one cut-out label per card
 - Generic and custom card design studio with logo upload, automatic colour-skin selection and downloadable front/back artwork
 - Privacy-light analytics (timestamp + card only; no IP, fingerprint or precise location)
 - Cloudflare Pages-ready static hosting
@@ -275,7 +275,7 @@ The lifetime count from the previous MVP remains intact, but historical daily ev
 - Complete one Paystack test subscription and verify automatic Business unlock
 - Finish Paystack activation before accepting live payments
 - Generate a small test batch and download its CSV
-- Print one activation pack and verify the dashed cutlines, code order and phone placement diagrams
+- Print one activation pack and verify the dashed cutlines, code order and phone placement instructions
 - Claim one test card as a normal customer
 - Save and test every destination type you plan to advertise
 - Confirm a tap increments the total and Business daily chart
