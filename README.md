@@ -63,7 +63,7 @@ select id from auth.users where email = 'YOUR_EMAIL_HERE'
 on conflict (user_id) do nothing;
 ```
 
-Log out and back in, then open `/admin`. The control room can generate 1 to 100 cards at a time and download their card name, slug, customer access code and permanent NFC URL as CSV.
+Log out and back in, then open `/admin`. The control room can generate 1 to 500 cards at a time and download their card name, slug, customer access code and permanent NFC URL as CSV.
 
 The slug is written to the NFC tag. The separate claim code goes into the customer pack. Never print the claim code on the public face of the card or encode it in the NFC tag.
 
@@ -72,8 +72,9 @@ The current `/admin` workflow is designed for production packing:
 1. Create a batch, choose a quantity, and optionally upload a customer logo.
 2. Download the CSV, copy any permanent URL, or open a QR image from any signed-in device.
 3. Use **Download artwork pack** for front/back card artwork with the matching QR code.
-4. Use **Print activation pack** for one instruction card plus removable code labels with dashed cutlines.
-5. Move each card through Created, Encoded, Printed, Packed and Shipped as you prepare the order.
+4. Use **Download print PDF** for a single production document with eight card faces per A4 sheet. The front and mirrored back sheets are paired for 100% scale, long-edge duplex printing, with bleed, trim marks and an NFC tap-zone alignment marker.
+5. Use **Print activation pack** for one polished instruction card per requested copy plus removable code labels with dashed cutlines.
+6. Move each card through Created, Encoded, Printed, Packed and Shipped as you prepare the order.
 
 For a multiple-card order, include one instruction card and tape the matching removable code label to each card. The label identifies the card by its position and claim code without exposing the code on the public card face.
 

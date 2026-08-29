@@ -102,7 +102,7 @@ python generate_qr_codes.py --csv .\cardence-card-batch-2026-08-29.csv
 
 Match every generated filename and manifest row to the same physical card slug before printing or encoding. Never generate the QR from a customer’s current Instagram, WhatsApp or website destination; that would bypass Cardence and could not be rerouted later.
 
-The `/admin` activation-pack export repeats the same placement guidance on the printed instruction card. Hold the top of an iPhone or the back of an Android phone over the contactless target, or scan the matching QR code with the camera. Test the final laminated sample before producing a full batch.
+The `/admin` activation-pack export repeats the same placement guidance on the printed instruction card. Hold the top of an iPhone or the back of an Android phone over the contactless target, or scan the matching QR code with the camera. The **Download print PDF** export lays out eight card faces per A4 sheet, mirrors the back columns for long-edge duplex printing, and adds trim marks plus a back-side NFC alignment marker. Test the final laminated sample before producing a full batch.
 
 ## Printer export checklist
 

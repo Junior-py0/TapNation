@@ -127,7 +127,7 @@ function cacheElements() {
     "inventoryResultTitle", "inventoryResultMeta", "inventoryTableBody", "downloadInventoryBtn", "printInventoryBtn",
     "adminCardsLabel", "adminCardsBody", "adminMessage", "adminBatchList", "adminBatchDetail", "selectedBatchName",
     "selectedBatchMeta", "downloadSelectedCsvBtn", "printSelectedPackBtn", "instructionCopies", "adminBatchCardsBody",
-    "designPreviewTitle", "designPreviewMeta", "downloadCardArtworkBtn", "downloadBatchArtworkBtn", "cardDesignCanvas", "toast",
+    "designPreviewTitle", "designPreviewMeta", "downloadCardArtworkBtn", "downloadBatchArtworkBtn", "downloadBatchPdfBtn", "cardDesignCanvas", "toast",
   ].forEach((id) => { els[id] = $(id); });
 
   Object.values(PROFILE_INPUTS).forEach((id) => { els[id] = $(id); });
@@ -165,6 +165,7 @@ function wireEvents() {
   els.printSelectedPackBtn.addEventListener("click", () => printActivationPack(state.selectedBatchCards, state.selectedBatch));
   els.downloadCardArtworkBtn.addEventListener("click", () => downloadCardArtwork(state.selectedArtworkCard, state.selectedBatch));
   els.downloadBatchArtworkBtn.addEventListener("click", () => downloadBatchArtwork(state.selectedBatchCards, state.selectedBatch));
+  els.downloadBatchPdfBtn.addEventListener("click", () => downloadBatchPrintPdf(state.selectedBatchCards, state.selectedBatch));
   els.inventoryLogo.addEventListener("change", handleLogoSelection);
   els.inventoryDesignMode.addEventListener("change", updateDesignFormState);
   els.publicShareBtn.addEventListener("click", sharePublicProfile);
@@ -943,18 +944,34 @@ const artworkPalettes = {
   monochrome: { background: "#111111", secondary: "#272727", accent: "#fffaf5", text: "#fffaf5", quiet: "#c9c9c9" },
 };
 
-async function drawCardArtwork(card, batch, canvas) {
-  const qr = await getQrDataUrl(card.nfc_url || cardUrl(card.slug));
-  const logoUrl = await getBatchLogoDataUrl(batch);
-  const logo = logoUrl ? await loadImage(logoUrl).catch(() => null) : null;
-  const qrImage = qr ? await loadImage(qr).catch(() => null) : null;
-  const ctx = canvas.getContext("2d");
+async function renderCardSideCanvas(card, batch, side, resources = {}) {
   const width = 1082;
   const height = 709;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const logo = resources.logo || null;
+  let qrImage = resources.qrImage || null;
+  if (side === "back" && !qrImage) {
+    const qr = await getQrDataUrl(card.nfc_url || cardUrl(card.slug));
+    qrImage = qr ? await loadImage(qr).catch(() => null) : null;
+  }
+  drawCardFace(canvas.getContext("2d"), 0, 0, width, height, batch, card, side, logo, qrImage);
+  return canvas;
+}
+
+async function drawCardArtwork(card, batch, canvas) {
+  const logoUrl = await getBatchLogoDataUrl(batch);
+  const logo = logoUrl ? await loadImage(logoUrl).catch(() => null) : null;
+  const front = await renderCardSideCanvas(card, batch, "front", { logo });
+  const back = await renderCardSideCanvas(card, batch, "back", { logo });
+  const width = 1082;
+  const height = 709;
+  const ctx = canvas.getContext("2d");
   canvas.width = width * 2;
   canvas.height = height;
-  drawCardFace(ctx, 0, 0, width, height, batch, card, "front", logo, null);
-  drawCardFace(ctx, width, 0, width, height, batch, card, "back", logo, qrImage);
+  ctx.drawImage(front, 0, 0);
+  ctx.drawImage(back, width, 0);
 }
 
 async function getBatchLogoDataUrl(batch) {
@@ -994,7 +1011,7 @@ function drawCardFace(ctx, x, y, width, height, batch, card, side, logo, qr) {
     ctx.font = "700 22px Arial";
     ctx.fillStyle = palette.quiet;
     ctx.fillText(batch.brand_name || "Your living contact profile", 76, 610);
-    drawContactlessGlyph(ctx, width - 170, 92, palette.accent);
+    drawNfcSymbolMarker(ctx, width - 170, 470, palette.accent, palette.quiet, "NFC TAP ZONE");
   } else {
     ctx.font = "800 25px Arial";
     ctx.fillStyle = palette.text;
@@ -1014,6 +1031,7 @@ function drawCardFace(ctx, x, y, width, height, batch, card, side, logo, qr) {
     ctx.font = "700 22px monospace";
     ctx.fillStyle = palette.quiet;
     ctx.fillText(`CARD ${String(card.batch_position || "").padStart(2, "0")} · ${card.slug || ""}`, 72, 610);
+    drawNfcSymbolMarker(ctx, 170, 470, palette.accent, palette.quiet, "ALIGN · NFC TAP ZONE");
   }
   ctx.restore();
 }
@@ -1031,13 +1049,30 @@ function drawArtworkLogo(ctx, logo, x, y, maxWidth, maxHeight, fallbackColor, ba
   ctx.fillText((batch.brand_name || "C").slice(0, 1).toUpperCase(), x, y);
 }
 
-function drawContactlessGlyph(ctx, x, y, color) {
+function drawNfcSymbolMarker(ctx, x, y, color, labelColor, label = "NFC TAP ZONE") {
   ctx.save();
   ctx.strokeStyle = color;
-  ctx.lineWidth = 9;
+  ctx.lineWidth = 8;
   ctx.lineCap = "round";
-  [0, 27, 54].forEach((offset) => { ctx.beginPath(); ctx.arc(x, y, 36 + offset, -Math.PI * .75, Math.PI * .75); ctx.stroke(); });
+  [0, 27, 54].forEach((offset) => {
+    ctx.beginPath();
+    ctx.arc(x, y, 30 + offset, -Math.PI * .72, Math.PI * .72);
+    ctx.stroke();
+  });
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, 12, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = labelColor || color;
+  ctx.font = "700 20px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  ctx.fillText(label, x, y + 92);
   ctx.restore();
+}
+
+function drawContactlessGlyph(ctx, x, y, color) {
+  drawNfcSymbolMarker(ctx, x, y, color, color, "NFC TAP ZONE");
 }
 
 function loadImage(src) {
@@ -1069,6 +1104,141 @@ async function downloadBatchArtwork(cards = state.selectedBatchCards, batch = st
   setMessage(els.adminMessage, "Artwork pack ready.", "success");
 }
 
+async function downloadBatchPrintPdf(cards = state.selectedBatchCards, batch = state.selectedBatch) {
+  if (!cards?.length || !batch) return showToast("Select a batch first.");
+  const JsPDF = globalThis.jspdf?.jsPDF;
+  if (!JsPDF) return showToast("Print PDF support is still loading. Try again in a moment.");
+
+  const doc = new JsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
+  doc.setProperties({
+    title: `${batch.brand_name || "Cardence"} card production`,
+    subject: "Double-sided card artwork with NFC alignment markers",
+    author: "Cardence",
+  });
+  const pageWidth = 210;
+  const cardWidth = 91.6;
+  const cardHeight = 60;
+  const gapX = 4;
+  const gapY = 4;
+  const marginX = (pageWidth - (cardWidth * 2 + gapX)) / 2;
+  const top = 22;
+  const perSheet = 8;
+  const totalSheets = Math.ceil(cards.length / perSheet);
+  const logoUrl = await getBatchLogoDataUrl(batch);
+  const logo = logoUrl ? await loadImage(logoUrl).catch(() => null) : null;
+
+  setMessage(els.adminMessage, `Preparing double-sided print PDF for ${cards.length} cards…`);
+  for (let start = 0; start < cards.length; start += perSheet) {
+    const sheetCards = cards.slice(start, start + perSheet);
+    if (start > 0) doc.addPage();
+    drawProductionPageHeader(doc, batch, "FRONT", Math.floor(start / perSheet) + 1, totalSheets);
+    for (let index = 0; index < sheetCards.length; index += 1) {
+      const card = sheetCards[index];
+      const col = index % 2;
+      const row = Math.floor(index / 2);
+      const x = marginX + col * (cardWidth + gapX);
+      const y = top + row * (cardHeight + gapY);
+      const front = await renderCardSideCanvas(card, batch, "front", { logo });
+      doc.addImage(front.toDataURL("image/png"), "PNG", x, y, cardWidth, cardHeight, `front-${start + index}`, "FAST");
+      drawPdfCardMarks(doc, x, y, "front", card, cardWidth, cardHeight);
+    }
+
+    doc.addPage();
+    drawProductionPageHeader(doc, batch, "BACK", Math.floor(start / perSheet) + 1, totalSheets);
+    for (let index = 0; index < sheetCards.length; index += 1) {
+      const card = sheetCards[index];
+      const col = index % 2;
+      const row = Math.floor(index / 2);
+      // Mirror the columns for long-edge duplex so the back artwork lands behind its front card.
+      const x = pageWidth - marginX - cardWidth - col * (cardWidth + gapX);
+      const y = top + row * (cardHeight + gapY);
+      const back = await renderCardSideCanvas(card, batch, "back", { logo });
+      doc.addImage(back.toDataURL("image/png"), "PNG", x, y, cardWidth, cardHeight, `back-${start + index}`, "FAST");
+      drawPdfCardMarks(doc, x, y, "back", card, cardWidth, cardHeight);
+    }
+  }
+  doc.save(`cardence-${safeDownloadName(batch.batch_name)}-print-production.pdf`);
+  setMessage(els.adminMessage, "Double-sided production PDF ready.", "success");
+  showToast("Production PDF downloaded.");
+}
+
+function drawProductionPageHeader(doc, batch, side, sheetNumber, sheetTotal) {
+  const ink = [33, 26, 56];
+  const coral = [247, 121, 93];
+  doc.setFillColor(252, 249, 246);
+  doc.rect(0, 0, 210, 297, "F");
+  doc.setTextColor(...ink);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.text(`${batch.brand_name || "Cardence"} card production`, 12, 10);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(6.2);
+  doc.setTextColor(117, 109, 125);
+  doc.text(`${side} SIDE · Sheet ${sheetNumber} of ${sheetTotal}`, 198, 9.5, { align: "right" });
+  doc.text(side === "BACK" ? "Mirror columns · print at 100% · flip on the long edge" : "8 cards per A4 · print at 100% · trim on the inner contour", 198, 15, { align: "right" });
+  doc.setDrawColor(...coral);
+  doc.setLineWidth(.35);
+  doc.line(12, 18, 198, 18);
+  doc.setTextColor(117, 109, 125);
+  doc.setFontSize(5.2);
+  doc.text("Bleed is included in each artwork tile. The inner dashed contour is the finished card edge.", 12, 288);
+  doc.text("Keep the back sheet in the same orientation as the front sheet.", 198, 288, { align: "right" });
+}
+
+function drawPdfCardMarks(doc, x, y, side, card, cardWidth, cardHeight) {
+  const ink = [33, 26, 56];
+  const coral = [247, 121, 93];
+  const trimX = x + 3;
+  const trimY = y + 3;
+  const trimWidth = cardWidth - 6;
+  const trimHeight = cardHeight - 6;
+  doc.setDrawColor(...coral);
+  doc.setLineWidth(.32);
+  doc.setLineDashPattern([1.2, 1], 0);
+  doc.roundedRect(trimX, trimY, trimWidth, trimHeight, 3.2, 3.2, "S");
+  doc.setLineDashPattern([], 0);
+  doc.setDrawColor(...ink);
+  doc.setLineWidth(.35);
+  const mark = 2.6;
+  const gap = .8;
+  doc.line(trimX - gap - mark, trimY, trimX - gap, trimY);
+  doc.line(trimX, trimY - gap - mark, trimX, trimY - gap);
+  doc.line(trimX + trimWidth + gap, trimY, trimX + trimWidth + gap + mark, trimY);
+  doc.line(trimX + trimWidth, trimY - gap - mark, trimX + trimWidth, trimY - gap);
+  doc.line(trimX - gap - mark, trimY + trimHeight, trimX - gap, trimY + trimHeight);
+  doc.line(trimX, trimY + trimHeight + gap, trimX, trimY + trimHeight + gap + mark);
+  doc.line(trimX + trimWidth + gap, trimY + trimHeight, trimX + trimWidth + gap + mark, trimY + trimHeight);
+  doc.line(trimX + trimWidth, trimY + trimHeight + gap, trimX + trimWidth, trimY + trimHeight + gap + mark);
+  if (side === "back") {
+    // This overlay makes the NFC placement easy to spot when the back sheet is used as a registration guide.
+    drawPdfNfcMarker(doc, x + 14.4, y + 39.8);
+  }
+  doc.setFont("courier", "normal");
+  doc.setFontSize(4.2);
+  doc.setTextColor(...ink);
+  doc.text(`CARD ${String(card.batch_position || "").padStart(2, "0")}`, trimX + trimWidth, trimY + trimHeight + 4.2, { align: "right" });
+}
+
+function drawPdfNfcMarker(doc, x, y) {
+  const coral = [247, 121, 93];
+  const ink = [33, 26, 56];
+  doc.setDrawColor(...coral);
+  doc.setLineWidth(.55);
+  [2.3, 4.2, 6.1].forEach((radius) => doc.circle(x, y, radius, "S"));
+  doc.setFillColor(...coral);
+  doc.circle(x, y, .9, "F");
+  doc.setDrawColor(...ink);
+  doc.setLineWidth(.3);
+  doc.line(x - 8, y, x - 6.8, y);
+  doc.line(x + 6.8, y, x + 8, y);
+  doc.line(x, y - 8, x, y - 6.8);
+  doc.line(x, y + 6.8, x, y + 8);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(3.7);
+  doc.setTextColor(...ink);
+  doc.text("NFC TAP ZONE", x + 8, y + 1.3);
+}
+
 async function printActivationPack(cards, batch) {
   if (!cards?.length || !batch) return showToast("Select a batch first.");
   const copies = Math.max(1, Math.min(50, Number(els.instructionCopies?.value || 1)));
@@ -1093,60 +1263,148 @@ async function printActivationPack(cards, batch) {
 }
 
 function drawInstructionPage(doc, batch, pageNumber, pageTotal) {
-  const cardWidth = 90;
-  const cardHeight = 62;
-  const gapX = 10;
-  const gapY = 8;
-  const left = 15;
-  const top = 10;
+  const ink = [33, 26, 56];
+  const coral = [247, 121, 93];
+  doc.setFillColor(252, 249, 246);
+  doc.rect(0, 0, 210, 297, "F");
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(33, 26, 56);
-  doc.text(`${batch.brand_name || "Cardence"} activation guide`, 15, 7);
+  doc.setFontSize(8.5);
+  doc.setTextColor(...ink);
+  doc.text(`${batch.brand_name || "Cardence"} activation guide`, 15, 11);
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(5.5);
-  doc.text(`Instruction card ${pageNumber} of ${pageTotal}`, 195, 7, { align: "right" });
-  for (let row = 0; row < 4; row += 1) for (let col = 0; col < 2; col += 1) drawInstructionCard(doc, left + col * (cardWidth + gapX), top + row * (cardHeight + gapY), cardWidth, cardHeight, batch);
+  doc.setFontSize(5.8);
+  doc.setTextColor(117, 109, 125);
+  doc.text(`Instruction card ${pageNumber} of ${pageTotal}`, 195, 11, { align: "right" });
+  doc.setDrawColor(...coral);
+  doc.setLineWidth(.35);
+  doc.line(15, 15, 195, 15);
+  drawInstructionCard(doc, 15, 22, 180, 190, batch);
+
+  doc.setFillColor(232, 239, 255);
+  doc.setDrawColor(218, 226, 247);
+  doc.roundedRect(15, 222, 180, 40, 5, 5, "FD");
+  doc.setTextColor(...ink);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.4);
+  doc.text("PACKING NOTE", 23, 233);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(6.2);
+  doc.setTextColor(88, 91, 119);
+  doc.text("Include one guide with multi-card orders. Tape each private access-code label", 23, 243);
+  doc.text("to its matching card, and keep codes off the public card artwork.", 23, 251);
+  doc.setFontSize(5.6);
+  doc.setTextColor(117, 109, 125);
+  doc.text("Cardence cards use one permanent link for both NFC taps and QR scans.", 15, 278);
 }
 
 function drawInstructionCard(doc, x, y, width, height, batch) {
-  doc.setDrawColor(247, 121, 93);
+  const ink = [33, 26, 56];
+  const coral = [247, 121, 93];
+  const lime = [201, 255, 74];
+  doc.setDrawColor(...coral);
+  doc.setLineWidth(.65);
   doc.setLineDashPattern([1, 1], 0);
-  doc.roundedRect(x, y, width, height, 3, 3, "S");
+  doc.roundedRect(x, y, width, height, 5, 5, "S");
   doc.setLineDashPattern([], 0);
-  doc.setFillColor(33, 26, 56);
-  doc.roundedRect(x + 3, y + 3, 22, 10, 2, 2, "F");
+  doc.setFillColor(...ink);
+  doc.roundedRect(x + 10, y + 10, 48, 16, 3, 3, "F");
   doc.setTextColor(255, 250, 245);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(6.2);
-  doc.text("CARDENCE", x + 6, y + 9.4);
-  doc.setTextColor(33, 26, 56);
-  doc.setFontSize(7.2);
-  doc.text("Set up your card", x + 29, y + 9.2);
+  doc.setFontSize(7.4);
+  doc.text("CARDENCE", x + 16, y + 20.5);
+  doc.setTextColor(...ink);
+  doc.setFontSize(14);
+  doc.text("Activate your card", x + 68, y + 20.5);
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(5.25);
-  const steps = ["1. Scan the QR code or tap the card.", "2. Create an account and confirm your email.", "3. Log in, then choose Add a card.", "4. Enter the access code on the label.", "5. Save your profile or choose another link."];
-  steps.forEach((step, index) => doc.text(step, x + 5, y + 19 + index * 5.4));
-  drawPdfSensor(doc, x + 9, y + 47, "iPhone");
-  drawPdfSensor(doc, x + 53, y + 47, "Android");
-  doc.setFontSize(4.25);
-  doc.text("Hold the top edge", x + 5, y + 59);
-  doc.text("Hold the back", x + 52, y + 59);
+  doc.setFontSize(5.5);
+  doc.setTextColor(117, 109, 125);
+  doc.text("Keep this guide with your card order", x + width - 10, y + 20.5, { align: "right" });
+  doc.setDrawColor(225, 219, 227);
+  doc.setLineWidth(.3);
+  doc.line(x + 10, y + 34, x + width - 10, y + 34);
+
+  doc.setFillColor(250, 247, 244);
+  doc.setDrawColor(238, 231, 227);
+  doc.roundedRect(x + 10, y + 44, 101, 108, 4, 4, "FD");
+  doc.setTextColor(...ink);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text("Five quick steps", x + 19, y + 56);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7);
+  const steps = ["Scan the QR code or tap the card.", "Create an account and confirm your email.", "Log in, then choose Add a card.", "Enter the private access code on the label.", "Save your profile or choose another link."];
+  steps.forEach((step, index) => {
+    const stepY = y + 70 + index * 15;
+    doc.setFillColor(...coral);
+    doc.circle(x + 22, stepY - 2, 4.4, "F");
+    doc.setTextColor(255, 250, 245);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.5);
+    doc.text(String(index + 1), x + 22, stepY, { align: "center" });
+    doc.setTextColor(...ink);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.8);
+    doc.text(step, x + 31, stepY);
+  });
+
+  doc.setFillColor(242, 240, 250);
+  doc.setDrawColor(225, 219, 227);
+  doc.roundedRect(x + 119, y + 44, 51, 108, 4, 4, "FD");
+  doc.setTextColor(...ink);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.2);
+  doc.text("Tap or scan", x + 144.5, y + 56, { align: "center" });
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(5.4);
+  doc.setTextColor(117, 109, 125);
+  doc.text("NFC placement", x + 144.5, y + 63, { align: "center" });
+  drawPdfSensor(doc, x + 126, y + 70, "iPhone");
+  drawPdfSensor(doc, x + 151, y + 70, "Android");
+  doc.setFontSize(5.4);
+  doc.setTextColor(...ink);
+  doc.text("Top edge", x + 136.5, y + 130, { align: "center" });
+  doc.text("Upper back", x + 161.5, y + 130, { align: "center" });
+  doc.setFontSize(5.1);
+  doc.setTextColor(117, 109, 125);
+  doc.text("Move slowly until the phone reacts.", x + 144.5, y + 142, { align: "center" });
+
+  doc.setFillColor(...ink);
+  doc.roundedRect(x + 10, y + 162, width - 20, 18, 4, 4, "F");
+  doc.setTextColor(...lime);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(6.6);
+  doc.text("YOUR ACCESS CODE", x + 19, y + 173);
+  doc.setTextColor(255, 250, 245);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(6.2);
+  doc.text("Use the removable label in your pack after email confirmation.", x + 76, y + 173);
+  doc.setFontSize(5.6);
+  doc.setTextColor(117, 109, 125);
+  doc.text("Keep each code private and tape it to the matching card.", x + 10, y + 186);
 }
 
 function drawPdfSensor(doc, x, y, type) {
+  const isIphone = type === "iPhone";
   doc.setDrawColor(33, 26, 56);
-  doc.setFillColor(type === "iPhone" ? 235 : 226, type === "iPhone" ? 231 : 236, type === "iPhone" ? 245 : 252);
-  doc.roundedRect(x, y, 25, 12, 2, 2, "FD");
+  doc.setFillColor(isIphone ? 235 : 226, isIphone ? 231 : 236, isIphone ? 245 : 252);
+  doc.setLineWidth(.55);
+  doc.roundedRect(x, y, 20, 52, 3.2, 3.2, "FD");
+  if (isIphone) {
+    doc.setFillColor(33, 26, 56);
+    doc.roundedRect(x + 6, y + 3, 8, 2, 1, 1, "F");
+  } else {
+    doc.setFillColor(33, 26, 56);
+    doc.circle(x + 4.5, y + 5, 1.8, "F");
+  }
   doc.setDrawColor(247, 121, 93);
-  doc.setLineWidth(.7);
-  doc.circle(x + 12.5, y + 5.3, 3.4, "S");
+  doc.setLineWidth(.9);
+  doc.circle(x + 10, y + 19, 5.3, "S");
   doc.setFillColor(255, 143, 112);
-  doc.circle(x + 12.5, y + 5.3, 1, "F");
+  doc.circle(x + 10, y + 19, 1.5, "F");
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(4.2);
+  doc.setFontSize(4.6);
   doc.setTextColor(33, 26, 56);
-  doc.text(type, x + 12.5, y + 10, { align: "center" });
+  doc.text(type, x + 10, y + 48, { align: "center" });
 }
 
 function drawCodeLabelsPage(doc, cards, batch, offset) {
@@ -1186,8 +1444,8 @@ async function openActivationPackPrintWindow(cards, batch, copies) {
   const popup = window.open("", "_blank");
   if (!popup) return showToast("Allow popups to print the activation pack.");
   const qrRows = cards.map((card) => `<div class="label"><strong>CARD ${String(card.batch_position || "").padStart(2, "0")}</strong><b>${escapeHtml(card.claim_code || "")}</b><small>Private setup code</small></div>`).join("");
-  const instructions = Array.from({ length: copies }, () => `<article class="instruction"><header><b>CARDENCE</b><strong>Set up your card</strong></header><ol><li>Scan the QR code or tap the card.</li><li>Create an account and confirm your email.</li><li>Log in, then choose Add a card.</li><li>Enter the access code on the label.</li><li>Save your profile or choose another link.</li></ol><div class="mini-sensors"><span>iPhone<br><i>Top edge</i></span><span>Android<br><i>Back</i></span></div></article>`).join("");
-  popup.document.write(`<!doctype html><title>Cardence activation pack</title><style>@page{size:A4;margin:10mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#211a38}.page{page-break-after:always;display:grid;grid-template-columns:repeat(2,90mm);grid-auto-rows:62mm;gap:8mm 10mm}.instruction,.label{position:relative;border:1px dashed #f7795d;border-radius:3mm;padding:4mm}.instruction header{display:flex;gap:4mm;align-items:center;margin-bottom:3mm}.instruction header b{padding:2mm;color:#fff;background:#211a38;border-radius:2mm;font-size:9px}.instruction header strong{font-size:11px}.instruction ol{margin:0;padding-left:5mm;font-size:8px;line-height:1.35}.mini-sensors{display:flex;justify-content:space-around;margin-top:3mm;text-align:center;font-size:8px}.mini-sensors span{display:grid;place-items:center;width:22mm;height:12mm;border:1px solid #211a38;border-radius:2mm}.mini-sensors i{color:#bd3d4d;font-size:6px;font-style:normal}.labels{page-break-after:always;display:grid;grid-template-columns:repeat(3,60mm);grid-auto-rows:20mm;gap:3mm 5mm}.label{border-radius:0;padding:3mm}.label strong{font-size:8px;display:block}.label b{font:700 14px monospace;display:block;margin-top:2mm}.label small{font-size:6px;position:absolute;right:3mm;top:3mm}</style><h1 style="font-size:12px">${escapeHtml(batch.brand_name || "Cardence")} activation pack</h1><div class="page">${instructions}</div><div class="labels">${qrRows}</div><script>window.onload=()=>window.print()<\/script>`);
+  const instructions = Array.from({ length: copies }, (_, index) => `<section class="instruction-page"><div class="guide-meta"><strong>${escapeHtml(batch.brand_name || "Cardence")} activation guide</strong><span>Instruction card ${index + 1} of ${copies}</span></div><article class="instruction"><header><b>CARDENCE</b><div><strong>Activate your card</strong><small>Keep this guide with the order</small></div></header><div class="guide-grid"><div class="steps"><h2>Five quick steps</h2><ol><li>Scan the QR code or tap the card.</li><li>Create an account and confirm your email.</li><li>Log in, then choose Add a card.</li><li>Enter the private access code on the label.</li><li>Save your profile or choose another link.</li></ol></div><div class="sensor-panel"><h2>Tap or scan</h2><p>NFC placement</p><div class="sensors"><div class="sensor"><span class="phone iphone"><i></i><b></b></span><strong>iPhone</strong><small>Top edge</small></div><div class="sensor"><span class="phone android"><i></i></span><strong>Android</strong><small>Upper back</small></div></div><em>Move slowly until the phone reacts.</em></div></div><div class="access"><strong>YOUR ACCESS CODE</strong><span>Use the removable label after email confirmation.</span></div><footer>Keep each code private and tape it to the matching card.</footer></article><div class="packing"><strong>PACKING NOTE</strong><span>Include one guide with multi-card orders. Tape each private access-code label to its matching card.</span></div></section>`).join("");
+  popup.document.write(`<!doctype html><title>Cardence activation pack</title><style>@page{size:A4;margin:0}*{box-sizing:border-box}body{margin:0;background:#fcf9f6;font-family:Arial,sans-serif;color:#211a38}.instruction-page{width:210mm;min-height:297mm;padding:11mm 15mm 9mm;page-break-after:always}.guide-meta{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f7795d;padding-bottom:4mm;font-size:9px}.guide-meta span{font-size:7px;color:#756d7d}.instruction{height:190mm;margin-top:7mm;padding:10mm;border:1px dashed #f7795d;border-radius:5mm;background:#fffaf5}.instruction header{display:flex;align-items:center;gap:7mm;border-bottom:1px solid #e1dbe3;padding-bottom:7mm}.instruction header b{padding:5mm 7mm;color:#fff;background:#211a38;border-radius:3mm;font-size:11px}.instruction header strong{font-size:19px;display:block}.instruction header small{font-size:8px;color:#756d7d;display:block;margin-top:1.5mm}.guide-grid{display:grid;grid-template-columns:1fr 51mm;gap:8mm;margin-top:9mm}.steps,.sensor-panel{border:1px solid #eee7e3;border-radius:4mm;padding:7mm;background:#faf7f4}.steps h2,.sensor-panel h2{font-size:11px;margin:0 0 6mm}.steps ol{padding-left:7mm;margin:0;font-size:10px;line-height:2}.sensor-panel{text-align:center;background:#f2f0fa}.sensor-panel p{font-size:8px;color:#756d7d;margin:0 0 5mm}.sensors{display:flex;justify-content:space-around;gap:4mm}.sensor{display:flex;flex-direction:column;align-items:center;font-size:8px}.phone{width:20mm;height:52mm;border:1.2px solid #211a38;border-radius:3mm;position:relative;display:block;background:#ebe7f5}.phone.iphone i{position:absolute;top:3mm;left:6mm;width:8mm;height:2mm;background:#211a38;border-radius:2mm}.phone.android i{position:absolute;top:3mm;left:4mm;width:3mm;height:3mm;background:#211a38;border-radius:50%}.phone:after{content:"";position:absolute;left:5.5mm;top:13mm;width:9mm;height:9mm;border:2px solid #f7795d;border-radius:50%;box-shadow:0 0 0 2px #f7795d inset}.sensor strong{margin-top:3mm}.sensor small{color:#756d7d;font-size:7px;margin-top:1mm}.sensor-panel em{display:block;color:#756d7d;font-size:7px;margin-top:7mm}.access{display:flex;align-items:center;gap:7mm;padding:6mm 7mm;background:#211a38;border-radius:4mm;margin-top:9mm;color:#fffaf5}.access strong{color:#c9ff4a;font-size:9px}.access span{font-size:8px}.instruction footer{font-size:8px;color:#756d7d;margin-top:4mm}.packing{display:flex;gap:6mm;align-items:center;background:#e8efff;border:1px solid #dae2f7;border-radius:4mm;padding:6mm;margin-top:9mm;font-size:8px}.packing strong{font-size:9px}.labels{padding:10mm 15mm;display:grid;grid-template-columns:repeat(3,60mm);grid-auto-rows:20mm;gap:3mm 5mm}.label{position:relative;border:1px dashed #f7795d;padding:3mm;background:#fffaf5}.label strong{font-size:8px;display:block}.label b{font:700 14px monospace;display:block;margin-top:2mm}.label small{font-size:6px;position:absolute;right:3mm;top:3mm;color:#756d7d}</style><h1 style="font-size:12px;padding:8mm 15mm 0">${escapeHtml(batch.brand_name || "Cardence")} activation pack</h1>${instructions}<section class="labels">${qrRows}</section><script>window.onload=()=>window.print()<\/script>`);
   popup.document.close();
 }
 
