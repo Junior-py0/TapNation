@@ -364,7 +364,7 @@ fieldset { min-width: 0; margin: 4px 0 0; padding: 0; border: 0; }.destination-p
 
 /* Admin production workflow */
 .admin-create-section { border-color: rgba(247,121,93,.4); }
-.admin-inventory-form { display: grid; gap: 18px; }
+.admin-inventory-form { display: grid; grid-template-columns: 1fr; gap: 18px; }
 .admin-form-grid, .admin-design-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .admin-design-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .admin-inventory-form label { min-width: 0; }
