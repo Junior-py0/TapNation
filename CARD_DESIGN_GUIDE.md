@@ -1,4 +1,4 @@
-# TapNation physical card design guide
+# Cardence physical card design guide
 
 This guide is for a standard CR80 PVC card, the familiar bank-card format.
 
@@ -20,7 +20,7 @@ Use one unmistakable action rather than filling the card with explanations:
 
 ```text
 ┌─────────────────────────────────────┐
-│ TN TapNation                    ))) │
+│ Cardence                         ))) │
 │                                     │
 │                                     │
 │       TAP HERE                      │
@@ -28,7 +28,7 @@ Use one unmistakable action rather than filling the card with explanations:
 └─────────────────────────────────────┘
 ```
 
-- Keep the TapNation mark in the top-left.
+- Keep the Cardence mark in the top-left.
 - Put a familiar contactless/NFC glyph near the actual tap area.
 - Make **TAP HERE** the largest message.
 - Use one supporting line at most.
@@ -97,10 +97,12 @@ This project includes `generate_qr_codes.py`. It accepts one slug or the batch C
 
 ```powershell
 python -m pip install -r requirements-qr.txt
-python generate_qr_codes.py --csv .\tapnation-card-batch-2026-08-29.csv
+python generate_qr_codes.py --csv .\cardence-card-batch-2026-08-29.csv
 ```
 
-Match every generated filename and manifest row to the same physical card slug before printing or encoding. Never generate the QR from a customer’s current Instagram, WhatsApp or website destination; that would bypass TapNation and could not be rerouted later.
+Match every generated filename and manifest row to the same physical card slug before printing or encoding. Never generate the QR from a customer’s current Instagram, WhatsApp or website destination; that would bypass Cardence and could not be rerouted later.
+
+The `/admin` activation-pack export repeats the same placement guidance on the printed instruction card. Hold the top of an iPhone or the back of an Android phone over the contactless target, or scan the matching QR code with the camera. Test the final laminated sample before producing a full batch.
 
 ## Printer export checklist
 

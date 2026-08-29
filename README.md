@@ -1,4 +1,4 @@
-# TapNation
+# Cardence
 
 TapNation is a static NFC-card website and customer dashboard backed by Supabase. A physical card is programmed once with a permanent URL such as:
 
@@ -20,8 +20,10 @@ When tapped, the website resolves the card slug in Supabase, counts the tap, and
 - Two clear card routes: **Contact profile** or **Other link**
 - Email signup/login and secure physical-card claiming
 - Account dashboard with card and lifetime-tap totals
-- Protected `/admin` control room with inventory totals, linked/activated counts, batch card generation and CSV export
-- Print-ready PNG and SVG QR generation from the same permanent URL used by each NFC tag
+- Protected `/admin` control room with inventory totals, linked/activated counts, saved batch history and production status
+- Batch tools for 1 to 500 cards, permanent URLs, access codes, matching QR codes, artwork exports and cross-device copy actions
+- Print-ready activation packs with iPhone and Android placement diagrams, dashed cutlines, an instruction card and one cut-out label per card
+- Generic and custom card design studio with logo upload, automatic colour-skin selection and downloadable front/back artwork
 - Privacy-light analytics (timestamp + card only; no IP, fingerprint or precise location)
 - Cloudflare Pages-ready static hosting
 
@@ -32,7 +34,7 @@ When tapped, the website resolves the card slug in Supabase, counts the tap, and
 - `app.js`: Supabase auth, live profiles, two-route card control and inventory tools
 - `supabase.sql`: idempotent database install/upgrade
 - `supabase/functions/`: store orders, delivery quotes, authenticated checkout, direct verification and signed Paystack webhook handling
-- `supabase/migrations/`: deployed database changes, including living contact profiles
+- `supabase/migrations/`: deployed database changes, including living contact profiles and persistent admin batches
 - `CARD_DESIGN_GUIDE.md`: production-ready physical card design guidance
 - `generate_qr_codes.py`: generates matching print/test QR artwork from a slug, URL or admin CSV
 - `requirements-qr.txt`: the small Python QR dependency
@@ -63,6 +65,16 @@ on conflict (user_id) do nothing;
 Log out and back in, then open `/admin`. The control room can generate 1 to 100 cards at a time and download their card name, slug, customer access code and permanent NFC URL as CSV.
 
 The slug is written to the NFC tag. The separate claim code goes into the customer pack. Never print the claim code on the public face of the card or encode it in the NFC tag.
+
+The current `/admin` workflow is designed for production packing:
+
+1. Create a batch, choose a quantity, and optionally upload a customer logo.
+2. Download the CSV, copy any permanent URL, or open a QR image from any signed-in device.
+3. Use **Download artwork pack** for front/back card artwork with the matching QR code.
+4. Use **Print activation pack** for one instruction card plus removable code labels with dashed cutlines.
+5. Move each card through Created, Encoded, Printed, Packed and Shipped as you prepare the order.
+
+For a multiple-card order, include one instruction card and tape the matching removable code label to each card. The label identifies the card by its position and claim code without exposing the code on the public card face.
 
 ### Legacy Business access
 
@@ -231,13 +243,16 @@ The permanent URL stored on an NFC tag does not change itself. If cards already 
 
 Do not lock tags until the final production URL has been tested on iPhone and Android.
 
-## 7. Customer flow
+## 7. Customer setup flow
 
 1. Customer creates an account.
-2. They claim the activation code from their pack.
-3. They open the card and choose a destination preset.
-4. TapNation explains exactly what link, username, email or phone number to enter.
-5. They save. The next tap uses the new destination immediately.
+2. They confirm their email and log in.
+3. They choose **Add card**, enter the removable activation code, and claim the card.
+4. They choose **Contact profile** to add only the details they want shown, or **Other link** to route the card to another URL.
+5. The setup guide explains the correct place to hold an iPhone or Android phone and includes QR scanning as a fallback.
+6. They save. The next tap or scan uses the new destination immediately.
+
+The profile is a living page rather than a stale contact sheet. Empty name, phone, email and social fields stay hidden, and every saved change is available on the next tap without rewriting the NFC tag.
 
 ## 8. Business analytics behaviour
 
@@ -247,7 +262,7 @@ The lifetime count from the previous MVP remains intact, but historical daily ev
 
 ## 9. Pre-launch checklist
 
-- Run the complete `supabase.sql` upgrade
+- Run the complete `supabase.sql` upgrade, or apply the latest migration in `supabase/migrations/`
 - Add your account to `app_admins`
 - Open `/admin` and generate a one-card test CSV
 - Generate its QR artwork and confirm the QR opens the same destination as the NFC URL
@@ -258,6 +273,7 @@ The lifetime count from the previous MVP remains intact, but historical daily ev
 - Complete one Paystack test subscription and verify automatic Business unlock
 - Finish Paystack activation before accepting live payments
 - Generate a small test batch and download its CSV
+- Print one activation pack and verify the dashed cutlines, code order and phone placement diagrams
 - Claim one test card as a normal customer
 - Save and test every destination type you plan to advertise
 - Confirm a tap increments the total and Business daily chart
