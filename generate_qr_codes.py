@@ -22,7 +22,7 @@ except ImportError as exc:  # pragma: no cover - gives a useful setup message
     ) from exc
 
 
-DEFAULT_BASE_URL = "https://tapnation.pages.dev/"
+DEFAULT_BASE_URL = "https://cardence.pages.dev/"
 SLUG_PATTERN = re.compile(r"^[A-Z0-9]{6,32}$")
 
 
@@ -145,4 +145,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -3,7 +3,7 @@
 TapNation is a static NFC-card website and customer dashboard backed by Supabase. A physical card is programmed once with a permanent URL such as:
 
 ```text
-https://tapnation.pages.dev/?c=A1B2C3D4E5
+https://cardence.pages.dev/?c=A1B2C3D4E5
 ```
 
 When tapped, the website resolves the card slug in Supabase, counts the tap, and opens either the owner's live contact profile or one secure external link. Details can change without rewriting the NFC tag or its matching QR code.
@@ -183,7 +183,7 @@ Or generate a complete batch from the CSV downloaded in `/admin`:
 python generate_qr_codes.py --csv .\tapnation-card-batch-2026-08-29.csv
 ```
 
-The `qr_codes` folder receives a high-resolution PNG, a print-friendly SVG and `qr_manifest.csv`. The encoded address is the permanent `https://tapnation.pages.dev/?c=SLUG` card link, not the current destination. This ensures NFC taps and QR scans use the same Supabase redirect and tap counter.
+The `qr_codes` folder receives a high-resolution PNG, a print-friendly SVG and `qr_manifest.csv`. The encoded address is the permanent `https://cardence.pages.dev/?c=SLUG` card link, not the current destination. This ensures NFC taps and QR scans use the same Supabase redirect and tap counter.
 
 ## 6. Cloudflare Pages production
 
@@ -193,7 +193,7 @@ This repository is already connected to:
 https://github.com/Junior-py0/TapNation.git
 ```
 
-The live project is already connected at `https://tapnation.pages.dev`. Pushing to `main` triggers its production deployment. For a new Cloudflare project:
+The live project is connected at `https://cardence.pages.dev`. Pushing to `main` triggers its production deployment. For a new Cloudflare project:
 
 1. Sign in to Cloudflare.
 2. Open **Workers & Pages**.
@@ -203,7 +203,7 @@ The live project is already connected at `https://tapnation.pages.dev`. Pushing 
 
 | Setting | Value |
 |---|---|
-| Project name | `tapnation-sa` (or any available name you want) |
+| Project name | `cardence` (or any available name you want) |
 | Production branch | `main` |
 | Framework preset | None |
 | Build command | `exit 0` (blank also works for a no-build static site) |
@@ -215,10 +215,10 @@ The live project is already connected at `https://tapnation.pages.dev`. Pushing 
 Cloudflare uses the project name for the hostname, so the example above becomes:
 
 ```text
-https://tapnation-sa.pages.dev
+https://cardence.pages.dev
 ```
 
-The exact `tapnation.pages.dev` name is only available if nobody has already claimed that Cloudflare Pages project name. The name does not come from GitHub Pages; GitHub is simply the source repository. Every push to `main` will trigger a new production deployment, and other branches can receive preview deployments.
+The exact `cardence.pages.dev` name is attached to the Cloudflare Pages project named `cardence`. The name does not come from GitHub Pages; GitHub is simply the source repository. Every push to `main` will trigger a new production deployment, and other branches can receive preview deployments.
 
 After deployment, update the Supabase authentication URLs described above. Test signup, login, claiming and one real `?c=SLUG` redirect on the new domain before encoding physical cards.
 
