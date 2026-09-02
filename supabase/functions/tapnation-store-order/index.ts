@@ -22,7 +22,7 @@ const productNames: Record<string, string> = {
   custom: "Cardence Branded Card",
   bulk: "Cardence Bulk Cards",
 };
-const skins = new Set(["aubergine", "porcelain", "coral", "cobalt", "monochrome"]);
+const skins = new Set(["aubergine", "porcelain", "coral", "cobalt", "monochrome", "navy", "forest", "burgundy", "sand", "slate"]);
 
 function clean(value: unknown, maximum = 200): string {
   return String(value || "").trim().slice(0, maximum);
@@ -175,7 +175,7 @@ async function deliveryQuote(order: ReturnType<typeof validatedOrder>) {
       providerSlug: "in-person",
       courierName: "In-person handover",
       serviceLevelCode: "owner-handover",
-      serviceName: "Collect directly from Cardence",
+      serviceName: "Cardence will arrange the handover",
       quotedAt: new Date().toISOString(),
       expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
     };

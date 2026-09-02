@@ -44,7 +44,7 @@ const SOCIAL_META = [
 
 const STORE_PRODUCTS = {
   original: { name: "Unbranded Card", description: "A clean Cardence design with encoded NFC, matching QR and a private activation code.", typeLabel: "Unbranded", minimum: 1 },
-  custom: { name: "Branded Card", description: "Your logo and colour direction on a fully encoded Cardence card.", typeLabel: "Branded", minimum: 1 },
+  custom: { name: "Branded Card", description: "Your business only, with a clean front, matching QR back and no Cardence branding on the printed design.", typeLabel: "Branded", minimum: 1 },
   bulk: { name: "Legacy Bulk Order", description: "Individually claimable cards for teams and events.", typeLabel: "Bulk", minimum: 10 },
 };
 
@@ -67,6 +67,7 @@ const state = {
   storeProduct: "original",
   shippingQuote: null,
   storeLogoUrl: "",
+  storePreviewVersion: 0,
   adminOverview: {},
   pickupCodes: [],
   orderLogoUrls: {},
@@ -145,7 +146,7 @@ function cacheElements() {
     "adminOrdersLabel", "adminOpenOrdersLabel", "adminYocoReceived", "adminCardSales", "adminShippingReceived",
     "adminPaidOrders", "adminRefunded", "adminOrdersList", "pickupCodeForm", "pickupCodeLabel", "pickupCodeMinutes",
     "pickupCodeUses", "createPickupCodeBtn", "pickupCodeResult", "pickupCodeValue", "copyPickupCodeBtn", "pickupCodesList", "pickupCodeMessage",
-    "storeModal", "closeStoreBtn", "storeCardPreview", "storePreviewLogoStage", "storePreviewLogoPlaceholder", "storePreviewLogo", "storePreviewBrand", "storePreviewName", "storePreviewTagline",
+    "storeModal", "closeStoreBtn", "storeCardPreview", "storePreviewFront", "storePreviewBack",
     "storeProductName", "storeProductText", "storeMerchandiseTotal", "storeBulkDiscount", "storeDeliveryTotal", "storeGrandTotal",
     "storeOrderForm", "storeQuantity", "storeTypeLabel", "customDesignFields", "storeLogo", "storeBrandName", "storeTagline",
     "storeSkin", "courierFields", "pickupFields", "quoteDeliveryBtn", "shippingResult", "placeOrderBtn", "storeMessage", "toast",
@@ -754,10 +755,10 @@ function renderAdminOrders(orders) {
   els.adminOrdersList.innerHTML = orders.map((order) => {
     const address = order.delivery_address || {};
     const addressText = order.delivery_method === "pickup"
-      ? "Protected in-person handover"
+      ? "Address-free handover to arrange with customer"
       : [address.streetAddress, address.localArea, address.city, address.province, address.postalCode].filter(Boolean).join(", ");
     const logo = state.orderLogoUrls[order.id]
-      ? `<img class="admin-order-logo" src="${escapeAttribute(state.orderLogoUrls[order.id])}" alt="Logo for ${escapeAttribute(order.brand_name || order.customer_name)}" />`
+      ? `<div class="admin-order-logo-wrap"><img class="admin-order-logo" src="${escapeAttribute(state.orderLogoUrls[order.id])}" alt="Logo for ${escapeAttribute(order.brand_name || order.customer_name)}" /><a href="${escapeAttribute(state.orderLogoUrls[order.id])}" target="_blank" rel="noopener">Open original logo ↗</a></div>`
       : `<div class="admin-order-logo logo-placeholder">${escapeHtml((order.brand_name || "C").slice(0, 1).toUpperCase())}</div>`;
     const fulfilOptions = ["new", "designing", "awaiting_approval", "production", "ready_to_ship", "shipped", "delivered", "cancelled"]
       .map((value) => `<option value="${value}"${order.fulfilment_status === value ? " selected" : ""}>${escapeHtml(titleCase(value))}</option>`).join("");
@@ -1040,7 +1041,7 @@ function formatBatchDate(value) {
 }
 
 function skinLabel(value) {
-  return ({ aubergine: "Aubergine", porcelain: "Porcelain", coral: "Coral", cobalt: "Cobalt", monochrome: "Monochrome", auto: "Adaptive" }[value] || "Aubergine");
+  return ({ aubergine: "Aubergine", porcelain: "Porcelain", coral: "Coral", cobalt: "Cobalt", monochrome: "Monochrome", navy: "Navy", forest: "Forest", burgundy: "Burgundy", sand: "Sand", slate: "Slate", auto: "Adaptive" }[value] || "Aubergine");
 }
 
 function safeDownloadName(value) {
@@ -1080,6 +1081,11 @@ const artworkPalettes = {
   coral: { background: "#a96f62", secondary: "#966156", accent: "#f2e6df", text: "#fbf7f4", quiet: "#e2cec7" },
   cobalt: { background: "#46556a", secondary: "#39475a", accent: "#d8cabc", text: "#f6f3ef", quiet: "#c8cdd4" },
   monochrome: { background: "#171717", secondary: "#242424", accent: "#d8d2ca", text: "#f7f6f2", quiet: "#b8b8b8" },
+  navy: { background: "#17233a", secondary: "#202f4b", accent: "#d7b56d", text: "#f8f6f0", quiet: "#b4bfd0" },
+  forest: { background: "#18362e", secondary: "#21483d", accent: "#d8c3a5", text: "#fbf8f2", quiet: "#b6c8c1" },
+  burgundy: { background: "#4d2230", secondary: "#632b3b", accent: "#e1b58f", text: "#fff8f3", quiet: "#d9bec6" },
+  sand: { background: "#d9c9ae", secondary: "#cdbb9d", accent: "#6c5140", text: "#2c2521", quiet: "#766d65" },
+  slate: { background: "#3f4a54", secondary: "#313942", accent: "#d6b98c", text: "#f8f7f4", quiet: "#c3cbd1" },
 };
 
 async function renderCardSideCanvas(card, batch, side, resources = {}) {
@@ -1125,6 +1131,8 @@ async function getBatchLogoDataUrl(batch) {
 
 function drawCardFace(ctx, x, y, width, height, batch, card, side, logo, qr) {
   const palette = artworkPalettes[batch.skin] || artworkPalettes.aubergine;
+  const custom = batch.design_mode === "custom";
+  const brandName = batch.brand_name || (custom ? "YOUR BUSINESS" : "CARDENCE");
   ctx.save();
   ctx.translate(x, y);
   ctx.fillStyle = palette.background;
@@ -1137,28 +1145,27 @@ function drawCardFace(ctx, x, y, width, height, batch, card, side, logo, qr) {
   ctx.fillStyle = palette.text;
   ctx.textBaseline = "top";
   if (side === "front") {
-    drawArtworkLogo(ctx, logo, 72, 60, 138, 78, palette.text, batch);
-    ctx.font = "700 22px Arial";
-    ctx.fillText("CARDENCE", 72, 170);
+    drawArtworkLogo(ctx, logo, 72, 60, custom ? 320 : 138, custom ? 145 : 78, palette.text, batch);
+    if (!custom) {
+      ctx.font = "700 22px Arial";
+      ctx.fillText("CARDENCE", 72, 170);
+    }
     ctx.strokeStyle = palette.accent;
     ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.moveTo(72, 244);
-    ctx.lineTo(190, 244);
+    ctx.moveTo(72, custom ? 254 : 244);
+    ctx.lineTo(custom ? 250 : 190, custom ? 254 : 244);
     ctx.stroke();
-    ctx.font = "600 44px Arial";
     ctx.fillStyle = palette.accent;
-    ctx.fillText(batch.tagline || "Connect instantly.", 72, 304);
-    ctx.font = "500 22px Arial";
+    drawFittedCanvasText(ctx, batch.tagline || "Connect instantly.", 72, 304, 650, 48, 28, 600);
     ctx.fillStyle = palette.quiet;
-    ctx.fillText(batch.brand_name || "Your digital contact card", 72, 372);
+    drawFittedCanvasText(ctx, brandName, 72, 374, 650, 24, 17, 500);
     ctx.font = "600 18px Arial";
-    ctx.fillText("NFC + QR", 72, 620);
+    ctx.fillText(custom ? "NFC + QR READY" : "NFC + QR", 72, 620);
     drawNfcSymbolMarker(ctx, width - 180, 440, palette.accent, palette.quiet, "NFC TAP ZONE");
   } else {
-    ctx.font = "700 23px Arial";
     ctx.fillStyle = palette.text;
-    ctx.fillText(batch.brand_name || "CARDENCE", 72, 58);
+    drawFittedCanvasText(ctx, brandName, 72, 58, 560, 26, 18, 700);
     ctx.font = "600 20px Arial";
     ctx.fillStyle = palette.quiet;
     ctx.fillText("SCAN OR TAP TO CONNECT", 72, 108);
@@ -1173,15 +1180,26 @@ function drawCardFace(ctx, x, y, width, height, batch, card, side, logo, qr) {
     ctx.fillText("or scan the QR code.", 72, 310);
     ctx.font = "600 19px monospace";
     ctx.fillStyle = palette.quiet;
-    ctx.fillText(`CARD ${String(card.batch_position || "").padStart(2, "0")} · ${card.slug || ""}`, 72, 610);
+    ctx.fillText(card.slug === "PREVIEW" ? "YOUR PERMANENT QR WILL APPEAR HERE" : `CARD ${String(card.batch_position || "").padStart(2, "0")} · ${card.slug || ""}`, 72, 610);
     drawNfcSymbolMarker(ctx, 180, 440, palette.accent, palette.quiet, "ALIGN · NFC TAP ZONE");
   }
   ctx.restore();
 }
 
+function drawFittedCanvasText(ctx, value, x, y, maxWidth, maximumSize, minimumSize, weight) {
+  const text = String(value || "");
+  let size = maximumSize;
+  do {
+    ctx.font = `${weight} ${size}px Arial`;
+    if (ctx.measureText(text).width <= maxWidth) break;
+    size -= 1;
+  } while (size > minimumSize);
+  ctx.fillText(text, x, y);
+}
+
 function drawArtworkLogo(ctx, logo, x, y, maxWidth, maxHeight, fallbackColor, batch) {
   if (logo) {
-    const scale = Math.min(maxWidth / logo.width, maxHeight / logo.height, 1);
+    const scale = Math.min(maxWidth / logo.width, maxHeight / logo.height);
     const width = logo.width * scale;
     const height = logo.height * scale;
     ctx.drawImage(logo, x, y, width, height);
@@ -1611,7 +1629,7 @@ function closeStore() {
 
 function handleStoreInput(event) {
   if (event.target?.name === "deliveryMethod") updateDeliveryFields();
-  updateStorePreview();
+  if ([els.storeQuantity, els.storeSkin, els.storeBrandName, els.storeTagline].includes(event.target)) updateStorePreview();
   invalidateShippingQuote();
 }
 
@@ -1698,19 +1716,28 @@ async function trimmedLogoPreview(file) {
   }
 }
 
-function updateStorePreview() {
+async function updateStorePreview() {
+  const version = ++state.storePreviewVersion;
   const skin = els.storeSkin.value || "aubergine";
-  els.storeCardPreview.className = `order-mini-card skin-${skin}`;
   const custom = state.storeProduct === "custom";
-  els.storePreviewLogoStage.classList.toggle("hidden", !custom);
-  els.storePreviewLogo.classList.toggle("hidden", !custom || !state.storeLogoUrl);
-  els.storePreviewLogoPlaceholder.classList.toggle("hidden", !custom || Boolean(state.storeLogoUrl));
-  if (custom && state.storeLogoUrl) els.storePreviewLogo.src = state.storeLogoUrl;
-  els.storePreviewBrand.textContent = "C";
-  els.storePreviewName.textContent = custom ? (els.storeBrandName.value.trim() || "YOUR BUSINESS") : "CARDENCE";
-  els.storePreviewTagline.textContent = custom
-    ? (els.storeTagline.value.trim() || "YOUR BRAND. ONE TAP.")
-    : "YOUR DETAILS. ONE TAP.";
+  const batch = {
+    skin,
+    design_mode: custom ? "custom" : "generic",
+    brand_name: custom ? (els.storeBrandName.value.trim() || "YOUR BUSINESS") : "CARDENCE",
+    tagline: custom ? (els.storeTagline.value.trim() || "CONNECT WITH US") : "YOUR DETAILS. ONE TAP.",
+  };
+  const card = { slug: "PREVIEW", batch_position: 0, nfc_url: "https://cardence.co.za/" };
+  let logo = null;
+  if (custom && state.storeLogoUrl) logo = await loadImage(state.storeLogoUrl).catch(() => null);
+  const qrData = await getQrDataUrl(card.nfc_url);
+  const qr = qrData ? await loadImage(qrData).catch(() => null) : null;
+  if (version !== state.storePreviewVersion) return;
+  [els.storePreviewFront, els.storePreviewBack].forEach((canvas) => {
+    canvas.width = 1082;
+    canvas.height = 709;
+  });
+  drawCardFace(els.storePreviewFront.getContext("2d"), 0, 0, 1082, 709, batch, card, "front", logo, null);
+  drawCardFace(els.storePreviewBack.getContext("2d"), 0, 0, 1082, 709, batch, card, "back", logo, qr);
 }
 
 function invalidateShippingQuote() {
