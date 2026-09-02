@@ -1207,12 +1207,12 @@ function drawCardFace(ctx, x, y, width, height, batch, card, side, logo, qr) {
     }
     ctx.font = "500 24px Arial";
     ctx.fillStyle = palette.text;
-    ctx.fillText("Hold your phone near the card", 72, 270);
-    ctx.fillText("or scan the QR code.", 72, 310);
+    ctx.fillText("Hold your phone near the card", 72, 246);
+    ctx.fillText("or scan the QR code.", 72, 286);
     ctx.font = "600 19px monospace";
     ctx.fillStyle = palette.quiet;
     ctx.fillText(card.slug === "PREVIEW" ? "YOUR PERMANENT QR WILL APPEAR HERE" : `CARD ${String(card.batch_position || "").padStart(2, "0")} · ${card.slug || ""}`, 72, height - 82);
-    drawNfcSymbolMarker(ctx, 180, 400, palette.accent, palette.quiet, "ALIGN · NFC TAP ZONE");
+    drawNfcSymbolMarker(ctx, 168, 432, palette.accent, palette.quiet, "ALIGN · NFC TAP ZONE");
   }
   ctx.restore();
 }
