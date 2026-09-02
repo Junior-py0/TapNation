@@ -42,6 +42,12 @@ const SOCIAL_META = [
   ["website_url", "Website", "↗"],
 ];
 
+const STORE_PRODUCTS = {
+  original: { name: "Unbranded Card", description: "A clean Cardence design with encoded NFC, matching QR and a private activation code.", typeLabel: "Unbranded", minimum: 1 },
+  custom: { name: "Branded Card", description: "Your logo and colour direction on a fully encoded Cardence card.", typeLabel: "Branded", minimum: 1 },
+  bulk: { name: "Legacy Bulk Order", description: "Individually claimable cards for teams and events.", typeLabel: "Bulk", minimum: 10 },
+};
+
 const state = {
   user: null,
   profile: emptyProfile(),
@@ -58,6 +64,12 @@ const state = {
   selectedLogoFile: null,
   selectedLogoDataUrl: "",
   logoDataCache: {},
+  storeProduct: "original",
+  shippingQuote: null,
+  storeLogoUrl: "",
+  adminOverview: {},
+  pickupCodes: [],
+  orderLogoUrls: {},
   preview: false,
 };
 
@@ -100,6 +112,8 @@ async function boot() {
     showLanding();
   }
 
+  showPaymentReturn(params);
+
   sb.auth.onAuthStateChange((event) => {
     if (event === "SIGNED_OUT") resetToLanding();
   });
@@ -110,13 +124,13 @@ function cacheElements() {
     "app", "redirectScreen", "redirectTitle", "redirectText", "manualOpen", "publicProfileScreen",
     "publicInitials", "publicName", "publicHeadline", "publicBio", "publicPrimaryActions",
     "publicSocialLinks", "publicDetails", "publicShareBtn", "landingPage", "authSection", "dashboard",
-    "editorSection", "adminPage", "landingNav", "headerCtas", "accountActions", "homeBtn", "accountsNavBtn",
+    "editorSection", "adminPage", "landingNav", "headerCtas", "accountActions", "homeBtn", "shopNavBtn", "accountsNavBtn",
     "showLoginBtn", "showSignupBtn", "heroStartBtn", "heroLoginBtn", "footerLoginBtn", "footerSignupBtn",
-    "accountBtn", "adminNavBtn", "logoutBtn", "backHomeBtn", "footerYear", "authTitle", "authSubtitle",
+    "accountShopBtn", "accountBtn", "adminNavBtn", "logoutBtn", "backHomeBtn", "footerYear", "authTitle", "authSubtitle",
     "authForm", "emailInput", "passwordInput", "authSubmitBtn", "switchAuthBtn", "authMessage", "userEmail",
     "dashboardTapTotal", "dashboardCardTotal", "dashboardProfileStatus", "profileCompletionBadge", "profileForm",
     "profileBioCount", "saveProfileBtn", "profileMessage", "previewProfileInitials", "previewProfileName",
-    "previewProfileHeadline", "previewProfileActions", "previewProfileSocials", "openClaimBtn", "emptyClaimBtn",
+    "previewProfileHeadline", "previewProfileActions", "previewProfileSocials", "dashboardShopBtn", "openClaimBtn", "emptyClaimBtn",
     "claimBox", "claimForm", "claimCodeInput", "claimMessage", "emptyCards", "cardsGrid", "cardCountLabel",
     "backToCardsBtn", "cardForm", "cardNameInput", "profileRouteNotice", "otherRouteField", "destinationInput",
     "saveMessage", "saveStatusBadge", "editorCardTitle", "previewName", "previewDestination", "nfcUrlText",
@@ -127,18 +141,26 @@ function cacheElements() {
     "inventoryResultTitle", "inventoryResultMeta", "inventoryTableBody", "downloadInventoryBtn", "printInventoryBtn",
     "adminCardsLabel", "adminCardsBody", "adminMessage", "adminBatchList", "adminBatchDetail", "selectedBatchName",
     "selectedBatchMeta", "downloadSelectedCsvBtn", "printSelectedPackBtn", "instructionCopies", "adminBatchCardsBody",
-    "designPreviewTitle", "designPreviewMeta", "downloadCardArtworkBtn", "downloadBatchArtworkBtn", "downloadBatchPdfBtn", "cardDesignCanvas", "toast",
+    "designPreviewTitle", "designPreviewMeta", "downloadCardArtworkBtn", "downloadBatchArtworkBtn", "downloadBatchPdfBtn", "cardDesignCanvas",
+    "adminOrdersLabel", "adminOpenOrdersLabel", "adminYocoReceived", "adminCardSales", "adminShippingReceived",
+    "adminPaidOrders", "adminRefunded", "adminOrdersList", "pickupCodeForm", "pickupCodeLabel", "pickupCodeMinutes",
+    "pickupCodeUses", "createPickupCodeBtn", "pickupCodeResult", "pickupCodeValue", "copyPickupCodeBtn", "pickupCodesList", "pickupCodeMessage",
+    "storeModal", "closeStoreBtn", "storeCardPreview", "storePreviewLogo", "storePreviewBrand", "storePreviewTagline",
+    "storeProductName", "storeProductText", "storeMerchandiseTotal", "storeBulkDiscount", "storeDeliveryTotal", "storeGrandTotal",
+    "storeOrderForm", "storeQuantity", "storeTypeLabel", "customDesignFields", "storeLogo", "storeBrandName", "storeTagline",
+    "storeSkin", "courierFields", "pickupFields", "quoteDeliveryBtn", "shippingResult", "placeOrderBtn", "storeMessage", "toast",
   ].forEach((id) => { els[id] = $(id); });
 
   Object.values(PROFILE_INPUTS).forEach((id) => { els[id] = $(id); });
 }
 
 function wireEvents() {
-  [els.showSignupBtn, els.heroStartBtn, els.footerSignupBtn].forEach((button) => button.addEventListener("click", () => openAuth("signup")));
+  [els.showSignupBtn, els.footerSignupBtn].forEach((button) => button.addEventListener("click", () => openAuth("signup")));
   [els.showLoginBtn, els.heroLoginBtn, els.footerLoginBtn, els.accountsNavBtn].forEach((button) => button.addEventListener("click", () => state.user ? showDashboard(state.user) : openAuth("login")));
   els.homeBtn.addEventListener("click", () => state.user ? showDashboard(state.user) : showLanding(true));
   els.backHomeBtn.addEventListener("click", () => showLanding(true));
   els.accountBtn.addEventListener("click", () => state.user && showDashboard(state.user));
+  [els.shopNavBtn, els.accountShopBtn, els.dashboardShopBtn, els.heroStartBtn].forEach((button) => button.addEventListener("click", goToShop));
   els.adminNavBtn.addEventListener("click", () => showAdminPage());
   els.logoutBtn.addEventListener("click", logout);
   els.authForm.addEventListener("submit", handleAuth);
@@ -169,6 +191,17 @@ function wireEvents() {
   els.inventoryLogo.addEventListener("change", handleLogoSelection);
   els.inventoryDesignMode.addEventListener("change", updateDesignFormState);
   els.publicShareBtn.addEventListener("click", sharePublicProfile);
+  $$(".shopBuyBtn").forEach((button) => button.addEventListener("click", () => openStore(button.dataset.product, Number(button.dataset.quantity || 1))));
+  els.closeStoreBtn.addEventListener("click", closeStore);
+  els.storeModal.addEventListener("click", (event) => { if (event.target === els.storeModal) closeStore(); });
+  els.storeOrderForm.addEventListener("input", handleStoreInput);
+  els.storeOrderForm.addEventListener("change", handleStoreInput);
+  els.storeLogo.addEventListener("change", updateStoreLogoPreview);
+  els.quoteDeliveryBtn.addEventListener("click", quoteStoreDelivery);
+  els.storeOrderForm.addEventListener("submit", submitStoreOrder);
+  els.pickupCodeForm.addEventListener("submit", createPickupCode);
+  els.copyPickupCodeBtn.addEventListener("click", async () => { await copyText(els.pickupCodeValue.textContent); showToast("Handover code copied."); });
+  els.adminOrdersList.addEventListener("click", handleAdminOrderAction);
   window.addEventListener("popstate", handleRouteChange);
 }
 
@@ -644,17 +677,23 @@ async function loadAdminOverview() {
   setMessage(els.adminMessage, "Loading…");
   if (state.preview) {
     state.batches = [{ id: "preview-batch", batch_name: "Launch sample", quantity: 2, design_mode: "generic", skin: "aubergine", brand_name: "Cardence", tagline: "Tap to connect", created_at: new Date().toISOString(), activated_count: 1, encoded_count: 1, printed_count: 1, tap_count: 1766 }];
-    renderAdminOverview({ totals: { total_cards: 24, linked_cards: 16, activated_cards: 18, unclaimed_cards: 6 }, cards: state.cards });
+    renderAdminOverview({ totals: { total_cards: 24, linked_cards: 16, activated_cards: 18, unclaimed_cards: 6, open_orders: 1 }, revenue: { yoco_received_cents: 59800, card_sales_cents: 59800, shipping_collected_cents: 0, paid_orders: 2, refunded_cents: 0 }, cards: state.cards, orders: [] });
+    renderPickupCodes();
     renderBatchList();
     await selectBatch(state.batches[0]);
     return setMessage(els.adminMessage, "");
   }
-  const [overviewResult, batchesResult] = await Promise.all([
+  const [overviewResult, batchesResult, pickupResult] = await Promise.all([
     sb.rpc("admin_dashboard_overview"),
     sb.rpc("admin_get_batches"),
+    sb.rpc("admin_get_store_pickup_codes"),
   ]);
   if (overviewResult.error) return setMessage(els.adminMessage, friendlyError(overviewResult.error), "error");
-  renderAdminOverview(overviewResult.data || {});
+  state.adminOverview = overviewResult.data || {};
+  await loadOrderLogoUrls(state.adminOverview.orders || []);
+  renderAdminOverview(state.adminOverview);
+  state.pickupCodes = pickupResult.error ? [] : (typeof pickupResult.data === "string" ? JSON.parse(pickupResult.data) : (pickupResult.data || []));
+  renderPickupCodes();
   if (batchesResult.error) {
     state.batches = [];
     renderBatchList();
@@ -675,18 +714,117 @@ async function loadAdminOverview() {
 
 function renderAdminOverview(data) {
   const totals = data.totals || {};
+  const revenue = data.revenue || {};
   const cards = Array.isArray(data.cards) ? data.cards : [];
+  const orders = Array.isArray(data.orders) ? data.orders : [];
   els.adminTotalCards.textContent = formatNumber(totals.total_cards || 0);
   els.adminLinkedCards.textContent = formatNumber(totals.linked_cards || 0);
   els.adminActivatedCards.textContent = formatNumber(totals.activated_cards || 0);
   els.adminUnclaimedCards.textContent = formatNumber(totals.unclaimed_cards || 0);
   els.adminCardsLabel.textContent = `${formatNumber(totals.total_cards || 0)} total`;
+  els.adminYocoReceived.textContent = formatMoney(revenue.yoco_received_cents || 0);
+  els.adminCardSales.textContent = formatMoney(revenue.card_sales_cents || 0);
+  els.adminShippingReceived.textContent = formatMoney(revenue.shipping_collected_cents || 0);
+  els.adminPaidOrders.textContent = formatNumber(revenue.paid_orders || 0);
+  els.adminRefunded.textContent = formatMoney(revenue.refunded_cents || 0);
+  els.adminOrdersLabel.textContent = `${formatNumber(revenue.paid_orders || 0)} paid`;
+  els.adminOpenOrdersLabel.textContent = `${formatNumber(totals.open_orders || 0)} open`;
   if (els.adminCardsBody) els.adminCardsBody.innerHTML = cards.length ? cards.map((card) => {
     const activated = Boolean(card.owner_id);
     const routed = card.destination_type === "profile" ? activated : Boolean(card.destination_url);
     const route = card.destination_type === "profile" ? "Contact profile" : routed ? "Other link" : "No route";
     return `<tr><td>${escapeHtml(card.card_name || "Cardence Card")}</td><td><code>${escapeHtml(card.slug || "")}</code></td><td><span class="admin-status ${routed ? "good" : "waiting"}">${escapeHtml(route)}</span></td><td><span class="admin-status ${activated ? "good" : "waiting"}">${activated ? "Claimed" : "Ready"}</span></td><td>${formatNumber(card.tap_count || 0)}</td></tr>`;
   }).join("") : '<tr><td colspan="5">No cards have been created yet.</td></tr>';
+  renderAdminOrders(orders);
+}
+
+async function loadOrderLogoUrls(orders) {
+  state.orderLogoUrls = {};
+  await Promise.all(orders.filter((order) => order.logo_path).map(async (order) => {
+    const { data } = await sb.storage.from("order-logos").createSignedUrl(order.logo_path, 3600);
+    if (data?.signedUrl) state.orderLogoUrls[order.id] = data.signedUrl;
+  }));
+}
+
+function renderAdminOrders(orders) {
+  if (!orders.length) {
+    els.adminOrdersList.innerHTML = '<p class="empty-inline">No Cardence store orders yet.</p>';
+    return;
+  }
+  els.adminOrdersList.innerHTML = orders.map((order) => {
+    const address = order.delivery_address || {};
+    const addressText = order.delivery_method === "pickup"
+      ? "Protected in-person handover"
+      : [address.streetAddress, address.localArea, address.city, address.province, address.postalCode].filter(Boolean).join(", ");
+    const logo = state.orderLogoUrls[order.id]
+      ? `<img class="admin-order-logo" src="${escapeAttribute(state.orderLogoUrls[order.id])}" alt="Logo for ${escapeAttribute(order.brand_name || order.customer_name)}" />`
+      : `<div class="admin-order-logo logo-placeholder">${escapeHtml((order.brand_name || "C").slice(0, 1).toUpperCase())}</div>`;
+    const fulfilOptions = ["new", "designing", "awaiting_approval", "production", "ready_to_ship", "shipped", "delivered", "cancelled"]
+      .map((value) => `<option value="${value}"${order.fulfilment_status === value ? " selected" : ""}>${escapeHtml(titleCase(value))}</option>`).join("");
+    const paymentOptions = ["pending", "paid", "failed", "review", "refunded", "cancelled"]
+      .map((value) => `<option value="${value}"${order.payment_status === value ? " selected" : ""}>${escapeHtml(titleCase(value))}</option>`).join("");
+    const bookButton = order.delivery_method === "courier" && order.payment_status === "paid" && order.fulfilment_status === "ready_to_ship"
+      ? `<button class="button primary compact" data-order-action="book" data-order-id="${escapeAttribute(order.id)}">Book Bob Go</button>` : "";
+    const tracking = order.tracking_url
+      ? `<a class="order-tracking" href="${escapeAttribute(order.tracking_url)}" target="_blank" rel="noopener">Track ${escapeHtml(order.tracking_reference || "shipment")} ↗</a>`
+      : order.tracking_reference ? `<span class="order-tracking">Tracking: ${escapeHtml(order.tracking_reference)}</span>` : "";
+    return `<article class="admin-order-card"><div class="admin-order-top"><div><code>${escapeHtml(order.public_reference)}</code><small>${escapeHtml(formatDateTime(order.created_at))}</small></div><span class="admin-status ${order.payment_status === "paid" ? "good" : "waiting"}">${escapeHtml(titleCase(order.payment_status))}</span></div><div class="admin-order-body">${logo}<div class="admin-order-details"><h3>${escapeHtml(order.quantity)} x ${escapeHtml(productName(order.product_type))}</h3><p><b>${escapeHtml(order.brand_name || order.customer_name)}</b>${order.tagline ? ` · ${escapeHtml(order.tagline)}` : ""}</p><dl><div><dt>Customer</dt><dd>${escapeHtml(order.customer_name)} · ${escapeHtml(order.customer_email)} · ${escapeHtml(order.customer_phone)}</dd></div><div><dt>Colour</dt><dd>${escapeHtml(titleCase(order.card_skin || "aubergine"))}</dd></div><div><dt>Delivery</dt><dd>${escapeHtml(addressText || "Address unavailable")}</dd></div><div><dt>Order value</dt><dd>${formatMoney(order.merchandise_total_cents)} cards + ${formatMoney(order.shipping_amount_cents)} delivery = <b>${formatMoney(order.total_cents)}</b></dd></div>${order.order_notes ? `<div><dt>Notes</dt><dd>${escapeHtml(order.order_notes)}</dd></div>` : ""}</dl>${tracking}</div></div><div class="admin-order-actions"><label>Payment<select data-payment-for="${escapeAttribute(order.id)}">${paymentOptions}</select></label><label>Fulfilment<select data-fulfilment-for="${escapeAttribute(order.id)}">${fulfilOptions}</select></label><button class="button secondary compact" data-order-action="save" data-order-id="${escapeAttribute(order.id)}">Save status</button>${bookButton}</div></article>`;
+  }).join("");
+}
+
+function renderPickupCodes() {
+  const now = Date.now();
+  const codes = Array.isArray(state.pickupCodes) ? state.pickupCodes : [];
+  els.pickupCodesList.innerHTML = codes.length ? codes.map((code) => {
+    const available = code.active && new Date(code.expires_at).getTime() > now && Number(code.used_count) < Number(code.max_uses);
+    return `<span class="pickup-code-chip ${available ? "active" : "expired"}"><b>${escapeHtml(code.label)}</b><small>${available ? `Active until ${escapeHtml(formatDateTime(code.expires_at))}` : "Used or expired"} · ${formatNumber(code.used_count)}/${formatNumber(code.max_uses)} used</small></span>`;
+  }).join("") : '<span class="empty-inline">No handover codes created yet.</span>';
+}
+
+async function createPickupCode(event) {
+  event.preventDefault();
+  if (state.preview) return setMessage(els.pickupCodeMessage, "Code generation is disabled in preview mode.");
+  els.createPickupCodeBtn.disabled = true;
+  setMessage(els.pickupCodeMessage, "Generating a private handover code…");
+  const { data, error } = await sb.rpc("admin_create_store_pickup_code", {
+    p_label: els.pickupCodeLabel.value.trim() || "In-person handover",
+    p_valid_minutes: Number(els.pickupCodeMinutes.value || 60),
+    p_max_uses: Number(els.pickupCodeUses.value || 1),
+  });
+  els.createPickupCodeBtn.disabled = false;
+  if (error) return setMessage(els.pickupCodeMessage, friendlyError(error), "error");
+  const result = typeof data === "string" ? JSON.parse(data) : data;
+  els.pickupCodeValue.textContent = result.code;
+  els.pickupCodeResult.classList.remove("hidden");
+  setMessage(els.pickupCodeMessage, `Code expires ${formatDateTime(result.expires_at)}. It is only shown here once.`, "success");
+  const { data: codes } = await sb.rpc("admin_get_store_pickup_codes");
+  state.pickupCodes = typeof codes === "string" ? JSON.parse(codes) : (codes || []);
+  renderPickupCodes();
+}
+
+async function handleAdminOrderAction(event) {
+  const button = event.target.closest("[data-order-action]");
+  if (!button) return;
+  const orderId = button.dataset.orderId;
+  button.disabled = true;
+  try {
+    if (button.dataset.orderAction === "book") {
+      setMessage(els.adminMessage, "Booking Bob Go collection…");
+      const { data, error } = await sb.functions.invoke("cardence-book-shipment", { body: { orderId } });
+      if (error) throw await unwrapFunctionError(error);
+      showToast(data?.alreadyBooked ? "Shipment was already booked." : "Bob Go shipment booked.");
+    } else {
+      const payment = els.adminOrdersList.querySelector(`[data-payment-for="${CSS.escape(orderId)}"]`).value;
+      const fulfilment = els.adminOrdersList.querySelector(`[data-fulfilment-for="${CSS.escape(orderId)}"]`).value;
+      const { error } = await sb.rpc("admin_update_store_order", { p_order_id: orderId, p_payment_status: payment, p_fulfilment_status: fulfilment });
+      if (error) throw error;
+      showToast("Order status saved.");
+    }
+    await loadAdminOverview();
+  } catch (error) {
+    setMessage(els.adminMessage, friendlyError(error), "error");
+    button.disabled = false;
+  }
 }
 
 async function generateInventory(event) {
@@ -1434,6 +1572,209 @@ function showPreviewDashboard() {
   showDashboard(state.user);
 }
 
+function goToShop() {
+  showLanding(true);
+  window.setTimeout(() => $("shop").scrollIntoView({ behavior: "smooth", block: "start" }), 40);
+}
+
+function openStore(productType, initialQuantity = 1) {
+  const product = STORE_PRODUCTS[productType] || STORE_PRODUCTS.original;
+  state.storeProduct = STORE_PRODUCTS[productType] ? productType : "original";
+  state.shippingQuote = null;
+  if (state.storeLogoUrl) URL.revokeObjectURL(state.storeLogoUrl);
+  state.storeLogoUrl = "";
+  els.storeOrderForm.reset();
+  els.storeQuantity.min = String(product.minimum);
+  els.storeQuantity.value = String(Math.max(product.minimum, Math.min(100, initialQuantity)));
+  els.storeProductName.textContent = product.name;
+  els.storeProductText.textContent = product.description;
+  els.storeTypeLabel.value = product.typeLabel;
+  els.customDesignFields.classList.toggle("hidden", state.storeProduct !== "custom");
+  els.storeLogo.required = state.storeProduct === "custom";
+  els.storeBrandName.required = state.storeProduct === "custom";
+  if (state.user?.email) els.storeOrderForm.elements.email.value = state.user.email;
+  els.storeSkin.value = state.storeProduct === "custom" ? "porcelain" : "aubergine";
+  els.storeOrderForm.elements.deliveryMethod.value = "courier";
+  updateDeliveryFields();
+  invalidateShippingQuote();
+  updateStorePreview();
+  setMessage(els.storeMessage, "");
+  els.storeModal.classList.remove("hidden");
+  document.body.classList.add("modal-open");
+  window.setTimeout(() => els.storeQuantity.focus(), 30);
+}
+
+function closeStore() {
+  els.storeModal.classList.add("hidden");
+  document.body.classList.remove("modal-open");
+}
+
+function handleStoreInput(event) {
+  if (event.target?.name === "deliveryMethod") updateDeliveryFields();
+  updateStorePreview();
+  invalidateShippingQuote();
+}
+
+function updateDeliveryFields() {
+  const pickup = els.storeOrderForm.elements.deliveryMethod.value === "pickup";
+  els.courierFields.classList.toggle("hidden", pickup);
+  els.pickupFields.classList.toggle("hidden", !pickup);
+  ["streetAddress", "localArea", "city", "province", "postalCode"].forEach((name) => {
+    els.storeOrderForm.elements[name].required = !pickup;
+  });
+  els.storeOrderForm.elements.pickupCode.required = pickup;
+}
+
+function updateStoreLogoPreview() {
+  if (state.storeLogoUrl) URL.revokeObjectURL(state.storeLogoUrl);
+  const file = els.storeLogo.files?.[0];
+  state.storeLogoUrl = file ? URL.createObjectURL(file) : "";
+  updateStorePreview();
+  invalidateShippingQuote();
+}
+
+function updateStorePreview() {
+  const skin = els.storeSkin.value || "aubergine";
+  els.storeCardPreview.className = `order-mini-card skin-${skin}`;
+  const custom = state.storeProduct === "custom";
+  els.storePreviewLogo.classList.toggle("hidden", !custom || !state.storeLogoUrl);
+  if (custom && state.storeLogoUrl) els.storePreviewLogo.src = state.storeLogoUrl;
+  els.storePreviewBrand.classList.toggle("hidden", custom && Boolean(state.storeLogoUrl));
+  els.storePreviewBrand.textContent = custom ? (els.storeBrandName.value.trim().slice(0, 2).toUpperCase() || "CB") : "C";
+  els.storePreviewTagline.textContent = custom
+    ? (els.storeTagline.value.trim() || "YOUR BRAND. ONE TAP.")
+    : "YOUR DETAILS. ONE TAP.";
+}
+
+function invalidateShippingQuote() {
+  state.shippingQuote = null;
+  els.shippingResult.classList.add("hidden");
+  els.placeOrderBtn.disabled = true;
+  els.storeDeliveryTotal.textContent = els.storeOrderForm.elements.deliveryMethod.value === "pickup" ? "Verify code" : "Calculate quote";
+  updateStoreTotals();
+}
+
+function storeUnitPrice(productType, quantity) {
+  const branded = productType === "custom";
+  if (quantity >= 50) return branded ? 11000 : 7500;
+  if (quantity >= 25) return branded ? 12500 : 8500;
+  if (quantity >= 10) return branded ? 13500 : 9000;
+  if (productType === "bulk") return 9000;
+  return branded ? 15000 : 10000;
+}
+
+function updateStoreTotals() {
+  const product = STORE_PRODUCTS[state.storeProduct] || STORE_PRODUCTS.original;
+  const quantity = Math.min(100, Math.max(product.minimum, Number(els.storeQuantity.value || product.minimum)));
+  const merchandise = storeUnitPrice(state.storeProduct, quantity) * quantity;
+  const baseUnit = state.storeProduct === "custom" ? 15000 : 10000;
+  const saving = Math.max(0, (baseUnit - storeUnitPrice(state.storeProduct, quantity)) * quantity);
+  const delivery = Number(state.shippingQuote?.amountCents || 0);
+  els.storeMerchandiseTotal.textContent = formatMoney(merchandise);
+  els.storeBulkDiscount.classList.toggle("hidden", saving <= 0);
+  els.storeBulkDiscount.querySelector("b").textContent = saving > 0 ? `-${formatMoney(saving)}` : "Applied";
+  if (state.shippingQuote) els.storeDeliveryTotal.textContent = delivery ? formatMoney(delivery) : "Free handover";
+  els.storeGrandTotal.textContent = formatMoney(merchandise + delivery);
+}
+
+function storePayload(action) {
+  const fields = els.storeOrderForm.elements;
+  const product = STORE_PRODUCTS[state.storeProduct] || STORE_PRODUCTS.original;
+  const quantity = Math.min(100, Math.max(product.minimum, Number(fields.quantity.value || product.minimum)));
+  return {
+    action,
+    productType: state.storeProduct,
+    quantity,
+    deliveryMethod: fields.deliveryMethod.value,
+    pickupCode: fields.pickupCode.value.trim(),
+    cardSkin: fields.cardSkin.value,
+    brandName: fields.brandName.value.trim(),
+    tagline: fields.tagline.value.trim(),
+    customer: {
+      fullName: fields.fullName.value.trim(), email: fields.email.value.trim(),
+      phone: fields.phone.value.trim(), company: fields.company.value.trim(),
+    },
+    address: {
+      streetAddress: fields.streetAddress.value.trim(), localArea: fields.localArea.value.trim(),
+      city: fields.city.value.trim(), province: fields.province.value, postalCode: fields.postalCode.value.trim(), country: "ZA",
+    },
+    notes: fields.notes.value.trim(),
+  };
+}
+
+async function quoteStoreDelivery() {
+  if (!els.storeOrderForm.reportValidity()) return;
+  const product = STORE_PRODUCTS[state.storeProduct];
+  if (Number(els.storeQuantity.value) < product.minimum) return setMessage(els.storeMessage, `The minimum for ${product.name} is ${product.minimum} cards.`, "error");
+  if (state.storeProduct === "custom" && !els.storeLogo.files?.[0]) return setMessage(els.storeMessage, "Upload your logo to preview and order a custom card.", "error");
+  els.quoteDeliveryBtn.disabled = true;
+  els.placeOrderBtn.disabled = true;
+  const pickup = els.storeOrderForm.elements.deliveryMethod.value === "pickup";
+  setMessage(els.storeMessage, pickup ? "Checking your handover code…" : "Getting a live Bob Go delivery price…");
+  try {
+    const { data, error } = await sb.functions.invoke("tapnation-store-order", { body: storePayload("quote") });
+    if (error) throw await unwrapFunctionError(error);
+    if (!data?.quote || !Number.isInteger(Number(data.quote.amountCents))) throw new Error("No delivery option is available.");
+    state.shippingQuote = data.quote;
+    els.shippingResult.innerHTML = `<span><b>${escapeHtml(data.quote.courierName || "Delivery")}</b><small>${escapeHtml(data.quote.serviceName || "Confirmed")}</small></span><strong>${Number(data.quote.amountCents) ? formatMoney(data.quote.amountCents) : "FREE"}</strong>`;
+    els.shippingResult.classList.remove("hidden");
+    els.placeOrderBtn.disabled = false;
+    setMessage(els.storeMessage, pickup ? "Handover unlocked. Continue to Yoco while the code is valid." : "Live delivery confirmed. Continue to secure payment.", "success");
+    updateStoreTotals();
+  } catch (error) {
+    setMessage(els.storeMessage, friendlyError(error), "error");
+  } finally {
+    els.quoteDeliveryBtn.disabled = false;
+  }
+}
+
+async function submitStoreOrder(event) {
+  event.preventDefault();
+  if (!state.shippingQuote || !els.storeOrderForm.reportValidity()) return;
+  const logo = els.storeLogo.files?.[0] || null;
+  if (state.storeProduct === "custom" && !logo) return setMessage(els.storeMessage, "Upload the business logo for this custom card.", "error");
+  if (logo && logo.size > 3 * 1024 * 1024) return setMessage(els.storeMessage, "The logo file must be 3 MB or smaller.", "error");
+  els.placeOrderBtn.disabled = true;
+  els.quoteDeliveryBtn.disabled = true;
+  setMessage(els.storeMessage, "Creating your Cardence order and opening Yoco…");
+  try {
+    const payload = storePayload("checkout");
+    if (logo) payload.logo = await filePayload(logo);
+    const { data, error } = await sb.functions.invoke("tapnation-store-order", { body: payload });
+    if (error) throw await unwrapFunctionError(error);
+    const checkoutUrl = new URL(String(data?.authorizationUrl || ""));
+    if (checkoutUrl.protocol !== "https:" || !(checkoutUrl.hostname === "yoco.com" || checkoutUrl.hostname.endsWith(".yoco.com"))) throw new Error("Yoco returned an invalid checkout address.");
+    window.location.assign(checkoutUrl.toString());
+  } catch (error) {
+    setMessage(els.storeMessage, friendlyError(error), "error");
+    els.placeOrderBtn.disabled = false;
+    els.quoteDeliveryBtn.disabled = false;
+  }
+}
+
+async function filePayload(file) {
+  const dataUrl = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("The logo file could not be read."));
+    reader.readAsDataURL(file);
+  });
+  return { name: file.name, type: file.type, dataUrl };
+}
+
+function showPaymentReturn(params) {
+  const status = params.get("payment");
+  const reference = params.get("reference");
+  if (!status || !reference) return;
+  if (status === "success") showToast(`Yoco received payment for ${reference}. The signed confirmation will update your order shortly.`);
+  else if (status === "cancelled") showToast(`Payment for ${reference} was cancelled. No confirmed sale was recorded.`);
+  else showToast(`Payment for ${reference} was not completed. You can place the order again.`);
+  const cleanUrl = new URL(window.location.href);
+  cleanUrl.searchParams.delete("payment");
+  cleanUrl.searchParams.delete("reference");
+  window.history.replaceState({}, "", cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
+}
+
 function handleRouteChange() {
   if (window.location.pathname === "/admin" && state.user) showAdminPage(false);
   else if (state.user) showDashboard(state.user, false);
@@ -1566,6 +1907,34 @@ function friendlyError(error) {
 
 function formatNumber(value) {
   return new Intl.NumberFormat("en-ZA").format(Number(value || 0));
+}
+
+function formatMoney(cents) {
+  return new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR", maximumFractionDigits: 2 }).format(Number(cents || 0) / 100);
+}
+
+function titleCase(value) {
+  return String(value || "").replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function productName(value) {
+  return STORE_PRODUCTS[value]?.name || "Cardence card";
+}
+
+function formatDateTime(value) {
+  if (!value) return "";
+  return new Intl.DateTimeFormat("en-ZA", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+}
+
+async function unwrapFunctionError(error) {
+  const context = error?.context;
+  if (context && typeof context.clone === "function") {
+    try {
+      const payload = await context.clone().json();
+      if (payload?.error || payload?.message) return new Error(payload.error || payload.message);
+    } catch {}
+  }
+  return error;
 }
 
 function escapeHtml(value) {

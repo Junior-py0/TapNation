@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.tapnation-store-order]
 verify_jwt = false
+
+[functions.cardence-yoco-webhook]
+verify_jwt = false
+
+[functions.cardence-book-shipment]
+verify_jwt = true
