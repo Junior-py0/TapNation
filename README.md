@@ -97,6 +97,12 @@ BOBGO_COLLECTION_EMAIL
 BOBGO_COLLECTION_NAME
 ```
 
+On the production computer, the guided activation script securely prompts for the Yoco live key, Bob Go token and collection details, tests Yoco, registers the Cardence webhook and saves the encrypted Supabase secrets:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\activate-cardence-commerce.ps1
+```
+
 Register the Yoco webhook at:
 
 ```text
