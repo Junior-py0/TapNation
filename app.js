@@ -1349,10 +1349,7 @@ async function downloadBatchPrintPdf(cards = state.selectedBatchCards, batch = s
     drawSheetRegistrationMarks(doc);
     for (let index = 0; index < sheetCards.length; index += 1) {
       const card = sheetCards[index];
-      const col = index % 2;
-      const row = Math.floor(index / 2);
-      const x = marginX + col * (cardWidth + gapX);
-      const y = top + row * (cardHeight + gapY);
+      const { x, y } = productionCardSlot(index, false, pageWidth, marginX, top, cardWidth, cardHeight, gapX, gapY);
       const front = await renderCardSideCanvas(card, batch, "front", { logo });
       doc.addImage(front.toDataURL("image/png"), "PNG", x, y, cardWidth, cardHeight, `front-${start + index}`, "FAST");
       drawPdfCardMarks(doc, x, y, "front", card, cardWidth, cardHeight);
@@ -1363,11 +1360,9 @@ async function downloadBatchPrintPdf(cards = state.selectedBatchCards, batch = s
     drawSheetRegistrationMarks(doc);
     for (let index = 0; index < sheetCards.length; index += 1) {
       const card = sheetCards[index];
-      const col = index % 2;
-      const row = Math.floor(index / 2);
-      // Mirror the columns for long-edge duplex so the back artwork lands behind its front card.
-      const x = pageWidth - marginX - cardWidth - col * (cardWidth + gapX);
-      const y = top + row * (cardHeight + gapY);
+      // The same slot function controls both sides. Only the horizontal column
+      // is mirrored; the vertical position and physical dimensions are exact.
+      const { x, y } = productionCardSlot(index, true, pageWidth, marginX, top, cardWidth, cardHeight, gapX, gapY);
       const back = await renderCardSideCanvas(card, batch, "back", { logo });
       doc.addImage(back.toDataURL("image/png"), "PNG", x, y, cardWidth, cardHeight, `back-${start + index}`, "FAST");
       drawPdfCardMarks(doc, x, y, "back", card, cardWidth, cardHeight);
@@ -1376,6 +1371,16 @@ async function downloadBatchPrintPdf(cards = state.selectedBatchCards, batch = s
   doc.save(`cardence-${safeDownloadName(batch.batch_name)}-print-production.pdf`);
   setMessage(els.adminMessage, "Production PDF ready: align and paste each front/back sheet pair using the crosshairs, then cut the 84 × 52 mm inserts.", "success");
   showToast("Aligned 84 × 52 mm card PDF downloaded.");
+}
+
+function productionCardSlot(index, mirrorColumns, pageWidth, marginX, top, cardWidth, cardHeight, gapX, gapY) {
+  const column = index % 2;
+  const row = Math.floor(index / 2);
+  const frontX = marginX + column * (cardWidth + gapX);
+  return {
+    x: mirrorColumns ? pageWidth - frontX - cardWidth : frontX,
+    y: top + row * (cardHeight + gapY),
+  };
 }
 
 function drawProductionPageHeader(doc, batch, side, sheetNumber, sheetTotal) {
@@ -1421,7 +1426,9 @@ function drawPdfCardMarks(doc, x, y, side, card, cardWidth, cardHeight) {
   doc.setDrawColor(...coral);
   doc.setLineWidth(.32);
   doc.setLineDashPattern([1.2, 1], 0);
-  doc.roundedRect(trimX, trimY, trimWidth, trimHeight, 3.2, 3.2, "S");
+  // A true rectangle gives the front and back one unambiguous, identical cut
+  // boundary. Square corners are much easier to cut and manually align.
+  doc.rect(trimX, trimY, trimWidth, trimHeight, "S");
   doc.setLineDashPattern([], 0);
   doc.setDrawColor(...ink);
   doc.setLineWidth(.35);

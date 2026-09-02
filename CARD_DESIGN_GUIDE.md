@@ -103,7 +103,7 @@ python generate_qr_codes.py --csv .\cardence-card-batch-2026-08-29.csv
 
 Match every generated filename and manifest row to the same physical card slug before printing or encoding. Never generate the QR from a customer’s current Instagram, WhatsApp or website destination; that would bypass Cardence and could not be rerouted later.
 
-The `/admin` activation-pack export repeats the same placement guidance on the printed instruction card. Hold the top of an iPhone or the back of an Android phone over the contactless target, or scan the matching QR code with the camera. The **Download print PDF** export lays out eight card faces per A4 sheet, mirrors the back columns, and adds matching sheet-registration crosshairs. Print the front and back sheets at 100%, turn the back sheet print-side out, align the crosshairs, paste the full sheets together, and only then cut the individual cards. Test the first finished laminated sample before producing a full batch.
+The `/admin` activation-pack export repeats the same placement guidance on the printed instruction card. Hold the top of an iPhone or the back of an Android phone over the contactless target, or scan the matching QR code with the camera. The **Download print PDF** export lays out eight card faces per A4 sheet, mirrors the back columns, and adds matching sheet-registration crosshairs. Both pages use the same 84 × 52 mm rectangular trim grid with square corners and identical vertical positions. Print the front and back sheets at 100%, turn the back sheet print-side out, align the crosshairs, paste the full sheets together, and only then cut the individual cards. Test the first finished laminated sample before producing a full batch.
 
 ## Printer export checklist
 
@@ -113,6 +113,7 @@ The `/admin` activation-pack export repeats the same placement guidance on the p
 - Printed insert trimmed to exactly 84 × 52 mm on the inner dashed contour
 - Insert centred in the full 86 × 54 mm pouch with an even 1 mm clear edge on every side
 - Front and mirrored-back sheets pasted together using the matching registration crosshairs before cutting
+- Cut contours are straight 84 × 52 mm rectangles with square corners
 - Pouch kept untrimmed after lamination so the seal remains intact
 - Crop marks outside the bleed if requested
 - Text and logo inside the safe zone
