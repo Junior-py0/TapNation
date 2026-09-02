@@ -7,13 +7,13 @@ This guide is for the 86 × 54 mm business-card lamination pouches currently use
 | Item | Size |
 |---|---|
 | Lamination pouch (finished outer size) | 86 × 54 mm |
-| Final trimmed printed insert | 82 x 50 mm |
-| Clear pouch seal | 2 mm on every edge |
-| Artwork canvas with 3 mm bleed | 88 x 56 mm |
+| Final trimmed printed insert | 84 × 52 mm |
+| Clear pouch edge | 1 mm on every edge |
+| Artwork canvas with 3 mm bleed | 90 × 58 mm |
 | Recommended safe margin | At least 4 mm inside the trim edge |
-| Raster size at 300 dpi | About 1039 x 661 px including bleed |
+| Raster size at 300 dpi | About 1063 × 685 px including bleed |
 
-Print the production PDF at 100%. Each artwork tile is 88 × 56 mm because it includes 3 mm of printer bleed on every side. Cut on the inner dashed contour to produce the finished 82 × 50 mm paper insert. Then centre that insert inside the 86 × 54 mm pouch, leaving exactly 2 mm of clear laminate around every edge so the pouch can seal.
+Print the production PDF at 100%. Each artwork tile is 90 × 58 mm because it includes 3 mm of printer bleed on every side. The exporter preserves the original card-design proportions. Cut on the inner dashed contour to produce the finished 84 × 52 mm paper insert, then centre it inside the 86 × 54 mm pouch so 1 mm of clear laminate remains around every edge.
 
 ## Recommended front layout
 
@@ -103,15 +103,16 @@ python generate_qr_codes.py --csv .\cardence-card-batch-2026-08-29.csv
 
 Match every generated filename and manifest row to the same physical card slug before printing or encoding. Never generate the QR from a customer’s current Instagram, WhatsApp or website destination; that would bypass Cardence and could not be rerouted later.
 
-The `/admin` activation-pack export repeats the same placement guidance on the printed instruction card. Hold the top of an iPhone or the back of an Android phone over the contactless target, or scan the matching QR code with the camera. The **Download print PDF** export lays out eight card faces per A4 sheet, mirrors the back columns for long-edge duplex printing, and adds trim marks plus a back-side NFC alignment marker. Test the final laminated sample before producing a full batch.
+The `/admin` activation-pack export repeats the same placement guidance on the printed instruction card. Hold the top of an iPhone or the back of an Android phone over the contactless target, or scan the matching QR code with the camera. The **Download print PDF** export lays out eight card faces per A4 sheet, mirrors the back columns, and adds matching sheet-registration crosshairs. Print the front and back sheets at 100%, turn the back sheet print-side out, align the crosshairs, paste the full sheets together, and only then cut the individual cards. Test the first finished laminated sample before producing a full batch.
 
 ## Printer export checklist
 
 - CMYK using the printer’s requested colour profile
 - 300 dpi images at final size
 - 3 mm bleed included
-- Printed insert trimmed to exactly 82 × 50 mm on the inner dashed contour
-- Insert centred in the full 86 × 54 mm pouch with an even 2 mm clear seal on every side
+- Printed insert trimmed to exactly 84 × 52 mm on the inner dashed contour
+- Insert centred in the full 86 × 54 mm pouch with an even 1 mm clear edge on every side
+- Front and mirrored-back sheets pasted together using the matching registration crosshairs before cutting
 - Pouch kept untrimmed after lamination so the seal remains intact
 - Crop marks outside the bleed if requested
 - Text and logo inside the safe zone
@@ -130,10 +131,10 @@ The current physical production setup is:
 | Component | Dimensions |
 |---|---:|
 | Lamination pouch | 86 × 54 mm |
-| Finished paper card / trim size | 82 × 50 mm |
-| Clear laminate seal | 2 mm on every side |
+| Finished paper card / trim size | 84 × 52 mm |
+| Clear laminate edge | 1 mm on every side |
 | Printer bleed | 3 mm per side |
-| Artwork including 3 mm bleed | 88 × 56 mm |
+| Artwork including 3 mm bleed | 90 × 58 mm |
 
 ### Important
 
@@ -141,22 +142,21 @@ The **86 × 54 mm measurement is the lamination pouch size**, not the paper card
 
 The paper insert must be cut to exactly:
 
-**82 × 50 mm**
+**84 × 52 mm**
 
 When centred inside the pouch, this leaves:
 
-**2 mm of clear laminate around all four edges.**
+**1 mm of clear laminate around all four edges.**
 
 For artwork that uses 3 mm printer bleed:
 
-**88 × 56 mm artwork → cut to 82 × 50 mm → laminate inside 86 × 54 mm pouch**
+**90 × 58 mm artwork → cut to 84 × 52 mm → laminate inside 86 × 54 mm pouch**
 
 Do not export or cut the paper card at 86 × 54 mm because the laminate requires a clear border in order to seal correctly.
 
 At 300 DPI, the approximate finished card raster dimensions are:
 
-- Width: 969 px
-- Height: 591 px
+- Width: 992 px
+- Height: 614 px
 
 The physical millimetre dimensions take precedence over pixel dimensions.
-
