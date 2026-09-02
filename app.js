@@ -145,7 +145,7 @@ function cacheElements() {
     "adminOrdersLabel", "adminOpenOrdersLabel", "adminYocoReceived", "adminCardSales", "adminShippingReceived",
     "adminPaidOrders", "adminRefunded", "adminOrdersList", "pickupCodeForm", "pickupCodeLabel", "pickupCodeMinutes",
     "pickupCodeUses", "createPickupCodeBtn", "pickupCodeResult", "pickupCodeValue", "copyPickupCodeBtn", "pickupCodesList", "pickupCodeMessage",
-    "storeModal", "closeStoreBtn", "storeCardPreview", "storePreviewLogo", "storePreviewBrand", "storePreviewTagline",
+    "storeModal", "closeStoreBtn", "storeCardPreview", "storePreviewLogoStage", "storePreviewLogoPlaceholder", "storePreviewLogo", "storePreviewBrand", "storePreviewName", "storePreviewTagline",
     "storeProductName", "storeProductText", "storeMerchandiseTotal", "storeBulkDiscount", "storeDeliveryTotal", "storeGrandTotal",
     "storeOrderForm", "storeQuantity", "storeTypeLabel", "customDesignFields", "storeLogo", "storeBrandName", "storeTagline",
     "storeSkin", "courierFields", "pickupFields", "quoteDeliveryBtn", "shippingResult", "placeOrderBtn", "storeMessage", "toast",
@@ -1625,22 +1625,89 @@ function updateDeliveryFields() {
   els.storeOrderForm.elements.pickupCode.required = pickup;
 }
 
-function updateStoreLogoPreview() {
+async function updateStoreLogoPreview() {
   if (state.storeLogoUrl) URL.revokeObjectURL(state.storeLogoUrl);
   const file = els.storeLogo.files?.[0];
-  state.storeLogoUrl = file ? URL.createObjectURL(file) : "";
+  state.storeLogoUrl = "";
+  if (file) {
+    try {
+      state.storeLogoUrl = await trimmedLogoPreview(file);
+    } catch {
+      state.storeLogoUrl = URL.createObjectURL(file);
+    }
+  }
   updateStorePreview();
   invalidateShippingQuote();
+}
+
+async function trimmedLogoPreview(file) {
+  const source = URL.createObjectURL(file);
+  try {
+    const image = await new Promise((resolve, reject) => {
+      const candidate = new Image();
+      candidate.onload = () => resolve(candidate);
+      candidate.onerror = reject;
+      candidate.src = source;
+    });
+    const maximum = 1000;
+    const scale = Math.min(1, maximum / Math.max(image.naturalWidth, image.naturalHeight));
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    context.drawImage(image, 0, 0, width, height);
+    const pixels = context.getImageData(0, 0, width, height).data;
+    const corners = [[0, 0], [width - 1, 0], [0, height - 1], [width - 1, height - 1]];
+    const samples = corners.map(([x, y]) => {
+      const offset = (y * width + x) * 4;
+      return [pixels[offset], pixels[offset + 1], pixels[offset + 2], pixels[offset + 3]];
+    });
+    const background = samples.reduce((total, sample) => total.map((value, index) => value + sample[index]), [0, 0, 0, 0]).map((value) => value / samples.length);
+    let left = width;
+    let top = height;
+    let right = -1;
+    let bottom = -1;
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const offset = (y * width + x) * 4;
+        const alpha = pixels[offset + 3];
+        if (alpha < 18) continue;
+        const difference = Math.abs(pixels[offset] - background[0]) + Math.abs(pixels[offset + 1] - background[1]) + Math.abs(pixels[offset + 2] - background[2]) + Math.abs(alpha - background[3]);
+        if (background[3] > 220 && difference < 52) continue;
+        left = Math.min(left, x);
+        top = Math.min(top, y);
+        right = Math.max(right, x);
+        bottom = Math.max(bottom, y);
+      }
+    }
+    if (right < left || bottom < top) return canvas.toDataURL("image/png");
+    const pad = Math.max(4, Math.round(Math.max(right - left, bottom - top) * 0.06));
+    left = Math.max(0, left - pad);
+    top = Math.max(0, top - pad);
+    right = Math.min(width - 1, right + pad);
+    bottom = Math.min(height - 1, bottom + pad);
+    const output = document.createElement("canvas");
+    output.width = right - left + 1;
+    output.height = bottom - top + 1;
+    output.getContext("2d").drawImage(canvas, left, top, output.width, output.height, 0, 0, output.width, output.height);
+    return output.toDataURL("image/png");
+  } finally {
+    URL.revokeObjectURL(source);
+  }
 }
 
 function updateStorePreview() {
   const skin = els.storeSkin.value || "aubergine";
   els.storeCardPreview.className = `order-mini-card skin-${skin}`;
   const custom = state.storeProduct === "custom";
+  els.storePreviewLogoStage.classList.toggle("hidden", !custom);
   els.storePreviewLogo.classList.toggle("hidden", !custom || !state.storeLogoUrl);
+  els.storePreviewLogoPlaceholder.classList.toggle("hidden", !custom || Boolean(state.storeLogoUrl));
   if (custom && state.storeLogoUrl) els.storePreviewLogo.src = state.storeLogoUrl;
-  els.storePreviewBrand.classList.toggle("hidden", custom && Boolean(state.storeLogoUrl));
-  els.storePreviewBrand.textContent = custom ? (els.storeBrandName.value.trim().slice(0, 2).toUpperCase() || "CB") : "C";
+  els.storePreviewBrand.textContent = "C";
+  els.storePreviewName.textContent = custom ? (els.storeBrandName.value.trim() || "YOUR BUSINESS") : "CARDENCE";
   els.storePreviewTagline.textContent = custom
     ? (els.storeTagline.value.trim() || "YOUR BRAND. ONE TAP.")
     : "YOUR DETAILS. ONE TAP.";

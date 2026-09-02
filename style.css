@@ -428,11 +428,22 @@ fieldset { min-width: 0; margin: 4px 0 0; padding: 0; border: 0; }.destination-p
 .featured-billing { border-color: #86b82a; background: rgba(201,255,74,.15); }
 .secure-checkout-note { margin: 0; color: var(--muted); text-align: center; font-size: .65rem; line-height: 1.5; }
 .store-modal { width: min(980px,100%); max-height: calc(100vh - 32px); overflow: auto; position: relative; }
+.store-modal .modal-close { z-index: 6; width: 38px; height: 38px; right: 16px; top: 14px; border-radius: 50%; display: grid; place-items: center; color: #211a38; background: #ff8f70; box-shadow: 0 8px 20px rgba(33,26,56,.2); font-size: 1.35rem; font-weight: 800; }
 .store-modal-grid { display: grid; grid-template-columns: 340px 1fr; }
 .order-summary { min-height: 100%; padding: 38px; color: white; background: radial-gradient(circle at 30% 12%,rgba(201,255,74,.15),transparent 13rem),var(--ink); }
 .order-summary .kicker { color: var(--lime); }
-.order-mini-card { aspect-ratio: 1.586; margin: 24px 0 30px; padding: 20px; border: 1px solid rgba(255,255,255,.15); border-radius: 19px; display: flex; justify-content: space-between; color: var(--lime); background: linear-gradient(145deg,#183128,#08130f); box-shadow: 0 25px 45px rgba(0,0,0,.25); transform: rotate(-3deg); }
-.order-mini-card b { align-self: flex-start; transform: rotate(90deg); letter-spacing: -5px; }
+.order-mini-card { aspect-ratio: 1.586; margin: 24px 0 30px; padding: 18px 19px 17px; border: 1px solid rgba(255,255,255,.15); border-radius: 19px; display: grid; grid-template-rows: auto 1fr auto; color: var(--lime); background: linear-gradient(145deg,#183128,#08130f); box-shadow: 0 25px 45px rgba(0,0,0,.25); transform: rotate(-2deg); }
+.order-card-head { display: flex; align-items: center; gap: 9px; }
+.order-card-head .mini-logo { width: 29px; height: 29px; border-radius: 9px; flex: 0 0 auto; font-size: .58rem; }
+.order-card-edition { margin-right: auto; opacity: .72; font: 800 .4rem Manrope; letter-spacing: .14em; }
+.order-nfc-mark { width: 23px; height: 23px; overflow: visible; }
+.order-nfc-mark path { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.order-logo-stage { min-height: 0; margin: 8px 22px 5px; padding: 7px 15px; border-radius: 13px; display: grid; place-items: center; background: rgba(255,255,255,.92); box-shadow: inset 0 0 0 1px rgba(33,26,56,.08); }
+.order-logo-stage > span { color: #71677b; font: 800 .6rem Manrope; letter-spacing: .16em; }
+.order-logo-stage > img { display: block; width: 100%; height: 70px; object-fit: contain; filter: drop-shadow(0 5px 9px rgba(33,26,56,.13)); }
+.order-card-footer { min-width: 0; display: flex; align-items: end; justify-content: space-between; gap: 12px; }
+.order-card-footer strong { max-width: 58%; overflow: hidden; text-overflow: ellipsis; color: currentColor; font: 800 .7rem Manrope; letter-spacing: .045em; white-space: nowrap; }
+.order-card-footer small { max-width: 45%; color: currentColor; opacity: .72; font-size: .43rem; font-weight: 800; letter-spacing: .08em; text-align: right; }
 .order-summary h2 { margin-bottom: 8px; font-size: 2rem; }
 .order-summary > p:not(.kicker) { color: var(--dark-muted); line-height: 1.55; font-size: .82rem; }
 .order-totals { margin-top: 28px; display: grid; }
@@ -679,9 +690,7 @@ fieldset { min-width: 0; margin: 4px 0 0; padding: 0; border: 0; }.destination-p
 .store-modal { border-radius: 30px; overflow-x: hidden; }
 .order-summary { background: radial-gradient(circle at 25% 10%,rgba(255,143,112,.19),transparent 14rem),#211a38; }
 .order-mini-card { position: relative; overflow: hidden; background: linear-gradient(145deg,#2d2245,#181126); }
-.order-mini-card > span,.order-mini-card > b,.order-mini-card > small,.order-mini-card > img { position: relative; z-index: 1; }
-.order-mini-card > small { align-self: flex-end; margin-top: auto; color: currentColor; opacity: .72; }
-.order-mini-card > img { width: 46%; height: 48%; align-self: center; object-fit: contain; filter: drop-shadow(0 8px 14px rgba(0,0,0,.15)); }
+.order-mini-card > * { position: relative; z-index: 1; }
 .order-mini-card.skin-aubergine { color: #ff9b80; background: linear-gradient(145deg,#2d2245,#181126); }
 .order-mini-card.skin-porcelain { color: #211a38; background: linear-gradient(145deg,#fffdf9,#eae4df); }
 .order-mini-card.skin-coral { color: #211a38; background: linear-gradient(145deg,#ffad96,#f7795d); }
