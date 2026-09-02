@@ -38,7 +38,7 @@ const SOCIAL_META = [
   ["linkedin_url", "LinkedIn", "in"],
   ["tiktok_url", "TikTok", "♪"],
   ["youtube_url", "YouTube", "▶"],
-  ["x_url", "X / Twitter", "𝕏"],
+  ["x_url", "X / Twitter", "\u{1D54F}"],
   ["website_url", "Website", "↗"],
 ];
 
@@ -1070,7 +1070,7 @@ async function renderDesignPreview() {
   const batch = state.selectedBatch;
   if (!card || !batch || !els.cardDesignCanvas) return;
   els.designPreviewTitle.textContent = card.card_name || "Cardence card";
-  els.designPreviewMeta.textContent = `${skinLabel(batch.skin)} skin · QR and NFC use ${card.nfc_url || cardUrl(card.slug)}`;
+  els.designPreviewMeta.textContent = `${skinLabel(batch.skin)} skin · 82 × 50 mm insert for an 86 × 54 mm pouch · 2 mm clear seal · QR and NFC use ${card.nfc_url || cardUrl(card.slug)}`;
   try { await drawCardArtwork(card, batch, els.cardDesignCanvas); }
   catch { showToast("The artwork preview could not be rendered."); }
 }
@@ -1088,9 +1088,40 @@ const artworkPalettes = {
   slate: { background: "#3f4a54", secondary: "#313942", accent: "#d6b98c", text: "#f8f7f4", quiet: "#c3cbd1" },
 };
 
+// Production geometry:
+// Artwork canvas is 88 x 56 mm including 3 mm printer bleed.
+// Trim 3 mm from every artwork edge.
+// The resulting paper insert is exactly 82 x 50 mm.
+// Centre the insert in the 86 x 54 mm lamination pouch.
+// This leaves a 2 mm laminate seal on every side.
+const PRINT_GEOMETRY = Object.freeze({
+  // Physical laminated product
+  pouchWidthMm: 86,
+  pouchHeightMm: 54,
+
+  // Clear laminate around the finished paper insert
+  sealBorderMm: 2,
+
+  // Finished PAPER insert after cutting
+  insertWidthMm: 82,
+  insertHeightMm: 50,
+
+  // Printer bleed around the paper trim
+  bleedMm: 3,
+
+  // 82 + 3 + 3 = 88
+  // 50 + 3 + 3 = 56
+  artworkWidthMm: 88,
+  artworkHeightMm: 56,
+
+  // Approximately 300 DPI
+  artworkWidthPx: 1039,
+  artworkHeightPx: 661,
+});
+
 async function renderCardSideCanvas(card, batch, side, resources = {}) {
-  const width = 1082;
-  const height = 709;
+  const width = PRINT_GEOMETRY.artworkWidthPx;
+  const height = PRINT_GEOMETRY.artworkHeightPx;
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -1109,8 +1140,8 @@ async function drawCardArtwork(card, batch, canvas) {
   const logo = logoUrl ? await loadImage(logoUrl).catch(() => null) : null;
   const front = await renderCardSideCanvas(card, batch, "front", { logo });
   const back = await renderCardSideCanvas(card, batch, "back", { logo });
-  const width = 1082;
-  const height = 709;
+  const width = PRINT_GEOMETRY.artworkWidthPx;
+  const height = PRINT_GEOMETRY.artworkHeightPx;
   const ctx = canvas.getContext("2d");
   canvas.width = width * 2;
   canvas.height = height;
@@ -1161,7 +1192,7 @@ function drawCardFace(ctx, x, y, width, height, batch, card, side, logo, qr) {
     ctx.fillStyle = palette.quiet;
     drawFittedCanvasText(ctx, brandName, 72, 374, 650, 24, 17, 500);
     ctx.font = "600 18px Arial";
-    ctx.fillText(custom ? "NFC + QR READY" : "NFC + QR", 72, 620);
+    ctx.fillText(custom ? "NFC + QR READY" : "NFC + QR", 72, height - 82);
     drawNfcSymbolMarker(ctx, width - 180, 440, palette.accent, palette.quiet, "NFC TAP ZONE");
   } else {
     ctx.fillStyle = palette.text;
@@ -1180,8 +1211,8 @@ function drawCardFace(ctx, x, y, width, height, batch, card, side, logo, qr) {
     ctx.fillText("or scan the QR code.", 72, 310);
     ctx.font = "600 19px monospace";
     ctx.fillStyle = palette.quiet;
-    ctx.fillText(card.slug === "PREVIEW" ? "YOUR PERMANENT QR WILL APPEAR HERE" : `CARD ${String(card.batch_position || "").padStart(2, "0")} · ${card.slug || ""}`, 72, 610);
-    drawNfcSymbolMarker(ctx, 180, 440, palette.accent, palette.quiet, "ALIGN · NFC TAP ZONE");
+    ctx.fillText(card.slug === "PREVIEW" ? "YOUR PERMANENT QR WILL APPEAR HERE" : `CARD ${String(card.batch_position || "").padStart(2, "0")} · ${card.slug || ""}`, 72, height - 82);
+    drawNfcSymbolMarker(ctx, 180, 400, palette.accent, palette.quiet, "ALIGN · NFC TAP ZONE");
   }
   ctx.restore();
 }
@@ -1273,12 +1304,12 @@ async function downloadBatchPrintPdf(cards = state.selectedBatchCards, batch = s
   const doc = new JsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
   doc.setProperties({
     title: `${batch.brand_name || "Cardence"} card production`,
-    subject: "Double-sided card artwork with NFC alignment markers",
+    subject: "Double-sided 82 x 50 mm card inserts for 86 x 54 mm lamination pouches",
     author: "Cardence",
   });
   const pageWidth = 210;
-  const cardWidth = 91.6;
-  const cardHeight = 60;
+  const cardWidth = PRINT_GEOMETRY.artworkWidthMm;
+  const cardHeight = PRINT_GEOMETRY.artworkHeightMm;
   const gapX = 4;
   const gapY = 4;
   const marginX = (pageWidth - (cardWidth * 2 + gapX)) / 2;
@@ -1319,8 +1350,8 @@ async function downloadBatchPrintPdf(cards = state.selectedBatchCards, batch = s
     }
   }
   doc.save(`cardence-${safeDownloadName(batch.batch_name)}-print-production.pdf`);
-  setMessage(els.adminMessage, "Double-sided production PDF ready.", "success");
-  showToast("Production PDF downloaded.");
+  setMessage(els.adminMessage, "Production PDF ready: trim each insert to 82 × 50 mm, then centre it in the 86 × 54 mm pouch.", "success");
+  showToast("82 x 50 mm insert production PDF downloaded.");
 }
 
 function drawProductionPageHeader(doc, batch, side, sheetNumber, sheetTotal) {
@@ -1336,23 +1367,23 @@ function drawProductionPageHeader(doc, batch, side, sheetNumber, sheetTotal) {
   doc.setFontSize(6.2);
   doc.setTextColor(117, 109, 125);
   doc.text(`${side} SIDE · Sheet ${sheetNumber} of ${sheetTotal}`, 198, 9.5, { align: "right" });
-  doc.text(side === "BACK" ? "Mirror columns · print at 100% · flip on the long edge" : "8 cards per A4 · print at 100% · trim on the inner contour", 198, 15, { align: "right" });
+  doc.text(side === "BACK" ? "Mirror columns - print at 100% - flip on the long edge" : "88 x 56 mm bleed artwork - trim to 82 x 50 mm", 198, 15, { align: "right" });
   doc.setDrawColor(...coral);
   doc.setLineWidth(.35);
   doc.line(12, 18, 198, 18);
   doc.setTextColor(117, 109, 125);
   doc.setFontSize(5.2);
-  doc.text("Bleed is included in each artwork tile. The inner dashed contour is the finished card edge.", 12, 288);
+  doc.text("Trim 3 mm bleed at the dashed contour. Centre the 82 x 50 mm insert in the 86 x 54 mm pouch for a 2 mm clear seal.", 12, 288);
   doc.text("Keep the back sheet in the same orientation as the front sheet.", 198, 288, { align: "right" });
 }
 
 function drawPdfCardMarks(doc, x, y, side, card, cardWidth, cardHeight) {
   const ink = [33, 26, 56];
   const coral = [247, 121, 93];
-  const trimX = x + 3;
-  const trimY = y + 3;
-  const trimWidth = cardWidth - 6;
-  const trimHeight = cardHeight - 6;
+  const trimX = x + PRINT_GEOMETRY.bleedMm;
+  const trimY = y + PRINT_GEOMETRY.bleedMm;
+  const trimWidth = PRINT_GEOMETRY.insertWidthMm;
+  const trimHeight = PRINT_GEOMETRY.insertHeightMm;
   doc.setDrawColor(...coral);
   doc.setLineWidth(.32);
   doc.setLineDashPattern([1.2, 1], 0);
@@ -1733,11 +1764,11 @@ async function updateStorePreview() {
   const qr = qrData ? await loadImage(qrData).catch(() => null) : null;
   if (version !== state.storePreviewVersion) return;
   [els.storePreviewFront, els.storePreviewBack].forEach((canvas) => {
-    canvas.width = 1082;
-    canvas.height = 709;
+    canvas.width = PRINT_GEOMETRY.artworkWidthPx;
+    canvas.height = PRINT_GEOMETRY.artworkHeightPx;
   });
-  drawCardFace(els.storePreviewFront.getContext("2d"), 0, 0, 1082, 709, batch, card, "front", logo, null);
-  drawCardFace(els.storePreviewBack.getContext("2d"), 0, 0, 1082, 709, batch, card, "back", logo, qr);
+  drawCardFace(els.storePreviewFront.getContext("2d"), 0, 0, PRINT_GEOMETRY.artworkWidthPx, PRINT_GEOMETRY.artworkHeightPx, batch, card, "front", logo, null);
+  drawCardFace(els.storePreviewBack.getContext("2d"), 0, 0, PRINT_GEOMETRY.artworkWidthPx, PRINT_GEOMETRY.artworkHeightPx, batch, card, "back", logo, qr);
 }
 
 function invalidateShippingQuote() {
@@ -2046,3 +2077,4 @@ function vcardEscape(value) {
 function csvCell(value) {
   return `"${String(value ?? "").replace(/"/g, '""')}"`;
 }
+

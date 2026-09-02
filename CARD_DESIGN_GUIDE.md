@@ -1,18 +1,19 @@
 # Cardence physical card design guide
 
-This guide is for a standard CR80 PVC card, the familiar bank-card format.
+This guide is for the 86 × 54 mm business-card lamination pouches currently used for Cardence production.
 
 ## Production canvas
 
 | Item | Size |
 |---|---|
-| Final trimmed card | 85.60 × 53.98 mm |
-| Bleed | 3 mm on every edge |
-| Artwork canvas with bleed | 91.60 × 59.98 mm |
+| Lamination pouch (finished outer size) | 86 × 54 mm |
+| Final trimmed printed insert | 82 x 50 mm |
+| Clear pouch seal | 2 mm on every edge |
+| Artwork canvas with 3 mm bleed | 88 x 56 mm |
 | Recommended safe margin | At least 4 mm inside the trim edge |
-| Raster size at 300 dpi | About 1082 × 709 px including bleed |
+| Raster size at 300 dpi | About 1039 x 661 px including bleed |
 
-Ask the chosen printer for its exact template before final export; its corner radius, colour profile, magnetic stripe or chip requirements may differ.
+Print the production PDF at 100%. Each artwork tile is 88 × 56 mm because it includes 3 mm of printer bleed on every side. Cut on the inner dashed contour to produce the finished 82 × 50 mm paper insert. Then centre that insert inside the 86 × 54 mm pouch, leaving exactly 2 mm of clear laminate around every edge so the pouch can seal.
 
 ## Recommended front layout
 
@@ -109,9 +110,53 @@ The `/admin` activation-pack export repeats the same placement guidance on the p
 - CMYK using the printer’s requested colour profile
 - 300 dpi images at final size
 - 3 mm bleed included
+- Printed insert trimmed to exactly 82 × 50 mm on the inner dashed contour
+- Insert centred in the full 86 × 54 mm pouch with an even 2 mm clear seal on every side
+- Pouch kept untrimmed after lamination so the seal remains intact
 - Crop marks outside the bleed if requested
 - Text and logo inside the safe zone
 - PDF/X-1a or the printer’s requested PDF standard
 - Fonts embedded or outlined in the final production copy
 - Unique QR/NFC slug correctly matched to the inventory CSV
 - Physical proof tested before locking or producing the full batch
+
+
+---
+
+## Current Cardence Production Dimensions
+
+The current physical production setup is:
+
+| Component | Dimensions |
+|---|---:|
+| Lamination pouch | 86 × 54 mm |
+| Finished paper card / trim size | 82 × 50 mm |
+| Clear laminate seal | 2 mm on every side |
+| Printer bleed | 3 mm per side |
+| Artwork including 3 mm bleed | 88 × 56 mm |
+
+### Important
+
+The **86 × 54 mm measurement is the lamination pouch size**, not the paper card size.
+
+The paper insert must be cut to exactly:
+
+**82 × 50 mm**
+
+When centred inside the pouch, this leaves:
+
+**2 mm of clear laminate around all four edges.**
+
+For artwork that uses 3 mm printer bleed:
+
+**88 × 56 mm artwork → cut to 82 × 50 mm → laminate inside 86 × 54 mm pouch**
+
+Do not export or cut the paper card at 86 × 54 mm because the laminate requires a clear border in order to seal correctly.
+
+At 300 DPI, the approximate finished card raster dimensions are:
+
+- Width: 969 px
+- Height: 591 px
+
+The physical millimetre dimensions take precedence over pixel dimensions.
+
